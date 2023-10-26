@@ -13,7 +13,7 @@ import { ExtModule } from './ext/ext.module';
       exclude: ['/api/(.*)'],
     }),
     ConfigModule.forRoot({
-      isGlobal: true
+      isGlobal: true,
     }),
     ExtModule,
   ],

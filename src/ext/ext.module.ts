@@ -4,6 +4,6 @@ import { ExtService } from './ext.service';
 
 @Module({
   providers: [ExtService],
-  controllers: [ExtController]
+  controllers: [ExtController],
 })
 export class ExtModule {}
