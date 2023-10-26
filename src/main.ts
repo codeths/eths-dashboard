@@ -15,7 +15,6 @@ async function bootstrap() {
     .setTitle('Dashboard example')
     .setDescription('The dashboard API description')
     .setVersion('1.0')
-    .addTag('bashboard')
     .build();
   const document = SwaggerModule.createDocument(app, config);
   SwaggerModule.setup('api', app, document);
