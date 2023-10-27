@@ -1,7 +1,7 @@
 import { GatewayTimeoutException, Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import axios from 'axios';
-import { oneToOneStatus } from 'common/ext/oneToOneStatus.dto';
+import { OneToOneStatus } from 'common/ext/oneToOneStatus.dto';
 
 @Injectable()
 export class ExtService {
@@ -10,9 +10,9 @@ export class ExtService {
   async getResponseFromOneToOne(deviceSerial: string) {
     const key = this.configService.getOrThrow('ONETOONE_KEY');
     const { data } = await axios
-      .get<oneToOneStatus>(
+      .get<OneToOneStatus>(
         `https://customapp.eths.k12.il.us/api/studentapplication/getonetoonebyserial/${deviceSerial}`,
-        { headers: { key } },
+        { headers: { key }, timeout: 5000 },
       )
       .catch(() => {
         throw new GatewayTimeoutException(
