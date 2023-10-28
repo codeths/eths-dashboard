@@ -16,6 +16,7 @@ describe('ExtService', () => {
         {
           provide: ConfigService,
           useValue: {
+            // mock API key
             getOrThrow: jest.fn(() => ''),
           },
         },
