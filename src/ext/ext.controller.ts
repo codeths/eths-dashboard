@@ -1,13 +1,16 @@
 import {
   BadGatewayException,
+  Body,
   Controller,
   Get,
   InternalServerErrorException,
   Logger,
   NotFoundException,
   Param,
+  Post,
   Res,
   ServiceUnavailableException,
+  ValidationPipe,
 } from '@nestjs/common';
 import { DeviceState, IDeviceStatus } from 'common/ext/oneToOneStatus.dto';
 import {
@@ -22,6 +25,7 @@ import {
 } from '@nestjs/swagger';
 import { Response } from 'express';
 import { ExtService } from './ext.service';
+import { RegistrationDto } from 'common/ext/registration.dto';
 
 @Controller({
   path: 'ext',
@@ -32,7 +36,7 @@ export class ExtController {
   constructor(private readonly extService: ExtService) {}
   private readonly logger = new Logger(ExtController.name);
 
-  @ApiOperation({ summary: 'Proxies device status requests to OneToOne' })
+  @ApiOperation({ description: 'Proxies device status requests to OneToOne' })
   @ApiOkResponse({
     schema: {
       properties: {
@@ -80,5 +84,17 @@ export class ExtController {
     return {
       status: data.object,
     };
+  }
+
+  @ApiOperation({
+    description:
+      'Links the Firebase token to the serial number & sets auth cookie',
+  })
+  @Post('register')
+  async register(
+    @Body(new ValidationPipe({ enableDebugMessages: true }))
+    device: RegistrationDto,
+  ) {
+    const { serial, alertToken } = device;
   }
 }
