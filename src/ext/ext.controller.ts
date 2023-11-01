@@ -9,7 +9,7 @@ import {
   Res,
   ServiceUnavailableException,
 } from '@nestjs/common';
-import { DeviceStatus, IDeviceStatus } from 'common/ext/oneToOneStatus.dto';
+import { DeviceState, IDeviceStatus } from 'common/ext/oneToOneStatus.dto';
 import {
   ApiBadGatewayResponse,
   ApiExtraModels,
@@ -52,7 +52,7 @@ export class ExtController {
   async getStatus(
     @Res({ passthrough: true }) res: Response,
     @Param('id') id: string,
-  ): Promise<{ status: DeviceStatus }> {
+  ): Promise<{ status: DeviceState }> {
     const startTime = Date.now();
     const { data } = await this.extService.getResponseFromOneToOne(id);
     const duration = Date.now() - startTime;

@@ -2,7 +2,7 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { ExtController } from './ext.controller';
 import { ConfigService } from '@nestjs/config';
 import { ExtService } from './ext.service';
-import { OneToOneStatus } from 'common/ext/oneToOneStatus.dto';
+import { DeviceState, OneToOneStatus } from 'common/ext/oneToOneStatus.dto';
 import {
   BadGatewayException,
   InternalServerErrorException,
@@ -36,7 +36,7 @@ describe('ExtController', () => {
     expect(controller).toBeDefined();
   });
 
-  const status = {
+  const status: DeviceState = {
     serial: 'NXHQEAA0010241CC467600',
     deviceStatus: 'Given to Assignee',
     loanerStatus: 'Not A Loaner',

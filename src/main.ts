@@ -13,6 +13,10 @@ async function bootstrap() {
 
   const config = new DocumentBuilder()
     .setTitle('Dashboard API')
+    .setDescription(
+      `Please make sure you reference the data transfer types in common/*.
+    The OpenAPI types are best effort and don't always get everything right.`,
+    )
     .setVersion('1.0')
     .build();
   const document = SwaggerModule.createDocument(app, config);
