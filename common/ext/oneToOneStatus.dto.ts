@@ -16,16 +16,9 @@ type DeviceStatus =
 type DeviceType = 'Not A Loaner' | 'Short Term Loaners' | 'Long Term Loaners';
 
 export class IDeviceStatus {
-  @ApiProperty()
   serial: string;
-
-  @ApiProperty()
   deviceStatus: DeviceStatus;
-
-  @ApiProperty()
   loanerStatus: DeviceType;
-
-  @ApiProperty()
   startDate: string | null;
 }
 export interface DeviceState extends IDeviceStatus {}
