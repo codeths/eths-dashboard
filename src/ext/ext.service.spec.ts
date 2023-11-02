@@ -3,6 +3,7 @@ import { ExtService } from './ext.service';
 import { ConfigService } from '@nestjs/config';
 import axios, { AxiosError } from 'axios';
 import { GatewayTimeoutException } from '@nestjs/common';
+import { JwtModule } from '@nestjs/jwt';
 
 jest.mock('axios');
 
@@ -11,6 +12,7 @@ describe('ExtService', () => {
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
+      imports: [JwtModule.register({ secret: 'abc' })],
       providers: [
         ExtService,
         {

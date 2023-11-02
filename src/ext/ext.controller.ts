@@ -8,6 +8,7 @@ import {
   NotFoundException,
   Param,
   Post,
+  Req,
   Res,
   ServiceUnavailableException,
   ValidationPipe,
@@ -23,9 +24,10 @@ import {
   ApiServiceUnavailableResponse,
   getSchemaPath,
 } from '@nestjs/swagger';
-import { Response } from 'express';
+import { Request, Response } from 'express';
 import { ExtService } from './ext.service';
 import { RegistrationDto } from 'common/ext/registration.dto';
+import { AuthCookieLifespan, AuthCookieName } from './ext.constants';
 
 @Controller({
   path: 'ext',
@@ -94,7 +96,16 @@ export class ExtController {
   async register(
     @Body(new ValidationPipe({ enableDebugMessages: true }))
     device: RegistrationDto,
+    @Req() req: Request,
+    @Res({ passthrough: true }) res: Response,
   ) {
     const { serial, alertToken } = device;
+
+    const authToken = await this.extService.generateToken(serial);
+
+    res.cookie(AuthCookieName, authToken, {
+      httpOnly: true,
+      maxAge: AuthCookieLifespan,
+    });
   }
 }

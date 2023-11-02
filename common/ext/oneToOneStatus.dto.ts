@@ -1,5 +1,3 @@
-import { ApiProperty } from '@nestjs/swagger';
-
 type APIResponseMessage = 'Device not found' | 'The api key is incorrect';
 
 type DeviceStatus =

@@ -7,6 +7,7 @@ import {
   BadGatewayException,
   InternalServerErrorException,
 } from '@nestjs/common';
+import { JwtModule } from '@nestjs/jwt';
 
 describe('ExtController', () => {
   let controller: ExtController;
@@ -14,6 +15,7 @@ describe('ExtController', () => {
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
+      imports: [JwtModule.register({ secret: 'abc' })],
       providers: [
         ExtService,
         {
