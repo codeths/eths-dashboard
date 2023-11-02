@@ -8,6 +8,8 @@ import {
   InternalServerErrorException,
 } from '@nestjs/common';
 import { JwtModule } from '@nestjs/jwt';
+import { plainToInstance } from 'class-transformer';
+import { RegistrationDto } from 'common/ext/registration.dto';
 
 describe('ExtController', () => {
   let controller: ExtController;
@@ -52,26 +54,58 @@ describe('ExtController', () => {
     },
   };
 
-  async function mockRequest() {
+  async function mockRegisterRequest(set?: jest.Mock, cookie?: jest.Mock) {
+    const device = plainToInstance(RegistrationDto, {
+      serial: status.serial,
+      alertToken: '',
+    });
+    const req = {};
+    const res = {
+      set: set || jest.fn(),
+      cookie: cookie || jest.fn(),
+    };
+
     // eslint-disable-next-line @typescript-eslint/ban-ts-comment
     // @ts-ignore
-    return await controller.getStatus({ set: jest.fn() }, '');
+    return await controller.register(device, req, res);
   }
 
-  it('[/status] should error if response is unsucessful', () => {
+  it('[POST /register] should error if response is unsucessful', () => {
     mockedExtResponse.mockImplementationOnce(() =>
       Promise.resolve({ data: { ...response.data, success: false } }),
     );
-    expect(mockRequest()).rejects.toThrowError(InternalServerErrorException);
+    expect(mockRegisterRequest()).rejects.toThrowError(
+      InternalServerErrorException,
+    );
   });
-  it('[/status] should error if response has no object', () => {
+  it('[POST /register] should error if response has no object', () => {
     mockedExtResponse.mockImplementationOnce(() =>
       Promise.resolve({ data: { ...response.data, object: undefined } }),
     );
-    expect(mockRequest()).rejects.toThrowError(BadGatewayException);
+    expect(mockRegisterRequest()).rejects.toThrowError(BadGatewayException);
   });
-  it('[/status] should resolve if response is good', () => {
+  it('[POST /register] should resolve if response is good', () => {
     mockedExtResponse.mockImplementationOnce(() => Promise.resolve(response));
-    expect(mockRequest()).resolves.toStrictEqual({ status });
+    expect(mockRegisterRequest()).resolves.toStrictEqual({ status });
+  });
+  it('[POST /register] should measure onetoone latency', async () => {
+    mockedExtResponse.mockImplementationOnce(() => Promise.resolve(response));
+    const mockSet = jest.fn();
+    await mockRegisterRequest(mockSet);
+    expect(mockSet).toHaveBeenCalled();
+  });
+  it("[POST /register] shouldn't set auth cookie on errors", async () => {
+    const mockCookie = jest.fn();
+    mockedExtResponse.mockImplementationOnce(() =>
+      Promise.resolve({ data: { ...response.data, success: false } }),
+    );
+    await mockRegisterRequest(undefined, mockCookie).catch(() => {});
+    expect(mockCookie).not.toHaveBeenCalled();
+  });
+  it('[POST /register] should set auth cookie if response is good', async () => {
+    mockedExtResponse.mockImplementationOnce(() => Promise.resolve(response));
+    const mockCookie = jest.fn();
+    await mockRegisterRequest(undefined, mockCookie).catch(() => {});
+    expect(mockCookie).toHaveBeenCalled();
   });
 });

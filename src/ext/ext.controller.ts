@@ -2,21 +2,20 @@ import {
   BadGatewayException,
   Body,
   Controller,
-  Get,
   InternalServerErrorException,
   Logger,
   NotFoundException,
-  Param,
   Post,
   Req,
   Res,
   ServiceUnavailableException,
   ValidationPipe,
 } from '@nestjs/common';
-import { DeviceState, IDeviceStatus } from 'common/ext/oneToOneStatus.dto';
+import { IDeviceStatus } from 'common/ext/oneToOneStatus.dto';
 import {
   ApiBadGatewayResponse,
   ApiExtraModels,
+  ApiGatewayTimeoutResponse,
   ApiInternalServerErrorResponse,
   ApiNotFoundResponse,
   ApiOkResponse,
@@ -38,7 +37,10 @@ export class ExtController {
   constructor(private readonly extService: ExtService) {}
   private readonly logger = new Logger(ExtController.name);
 
-  @ApiOperation({ description: 'Proxies device status requests to OneToOne' })
+  @ApiOperation({
+    description:
+      'Links the Firebase token to the serial number & sets auth cookie',
+  })
   @ApiOkResponse({
     schema: {
       properties: {
@@ -50,17 +52,28 @@ export class ExtController {
   })
   @ApiNotFoundResponse({ description: 'Device not found' })
   @ApiServiceUnavailableResponse({
-    description: 'Failed to authenticate with OneToOne',
+    description: 'Incorrect OneToOne key',
   })
-  @ApiInternalServerErrorResponse({ description: 'Incorrect OneToOne key' })
+  @ApiInternalServerErrorResponse({
+    description: 'Unexpected OneToOne request failure',
+  })
   @ApiBadGatewayResponse({ description: 'No data in response from OneToOne' })
-  @Get('status/:id')
-  async getStatus(
+  @ApiGatewayTimeoutResponse({
+    description: 'Failed to communicate with OneToOne',
+  })
+  @Post('register')
+  async register(
+    @Body(new ValidationPipe({ enableDebugMessages: true }))
+    device: RegistrationDto,
+    @Req() req: Request,
     @Res({ passthrough: true }) res: Response,
-    @Param('id') id: string,
-  ): Promise<{ status: DeviceState }> {
+  ) {
+    const { serial, alertToken } = device;
+
+    //  -----  Fetch Status  -----
+
     const startTime = Date.now();
-    const { data } = await this.extService.getResponseFromOneToOne(id);
+    const { data } = await this.extService.getResponseFromOneToOne(serial);
     const duration = Date.now() - startTime;
     this.logger.debug(`Proxied request took ${duration}ms`);
     res.set('Server-Timing', `proxy;dur=${duration}`);
@@ -83,23 +96,7 @@ export class ExtController {
     if (!data.object)
       throw new BadGatewayException('No data in response from OneToOne');
 
-    return {
-      status: data.object,
-    };
-  }
-
-  @ApiOperation({
-    description:
-      'Links the Firebase token to the serial number & sets auth cookie',
-  })
-  @Post('register')
-  async register(
-    @Body(new ValidationPipe({ enableDebugMessages: true }))
-    device: RegistrationDto,
-    @Req() req: Request,
-    @Res({ passthrough: true }) res: Response,
-  ) {
-    const { serial, alertToken } = device;
+    //  -----  Generate AuthToken  -----
 
     const authToken = await this.extService.generateToken(serial);
 
@@ -107,5 +104,9 @@ export class ExtController {
       httpOnly: true,
       maxAge: AuthCookieLifespan,
     });
+
+    return {
+      status: data.object,
+    };
   }
 }

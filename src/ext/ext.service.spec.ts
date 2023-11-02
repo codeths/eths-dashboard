@@ -31,7 +31,7 @@ describe('ExtService', () => {
   it('should be defined', () => {
     expect(service).toBeDefined();
   });
-  it('should return a response', () => {
+  it('[getResponseFromOneToOne] should return a response', () => {
     const data = {
       object: {
         serial: 'NXHQEAA0010241CC467600',
@@ -51,12 +51,15 @@ describe('ExtService', () => {
       response,
     );
   });
-  it('should throw on timeouts', () => {
+  it('[getResponseFromOneToOne] should throw on timeouts', () => {
     const mockedAxios = jest.mocked(axios);
     mockedAxios.get.mockRejectedValue(new AxiosError());
 
     expect(async () => {
       await service.getResponseFromOneToOne('');
     }).rejects.toThrow(GatewayTimeoutException);
+  });
+  it('[generateToken] should should return an auth token', () => {
+    expect(service.generateToken('')).resolves.toBeTruthy();
   });
 });

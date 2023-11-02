@@ -22,7 +22,7 @@ export class ExtService {
       )
       .catch(() => {
         throw new GatewayTimeoutException(
-          'Failed to get a response from OneToOne',
+          'Failed to communicate with OneToOne',
         );
       });
 
