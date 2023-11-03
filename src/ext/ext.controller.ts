@@ -2,31 +2,36 @@ import {
   BadGatewayException,
   Body,
   Controller,
-  ForbiddenException,
   InternalServerErrorException,
   Logger,
   Post,
+  Put,
   Req,
   Res,
   ServiceUnavailableException,
+  UnauthorizedException,
+  UseGuards,
   ValidationPipe,
 } from '@nestjs/common';
 import { IDeviceStatus } from 'common/ext/oneToOneStatus.dto';
 import {
   ApiBadGatewayResponse,
+  ApiCookieAuth,
   ApiExtraModels,
-  ApiForbiddenResponse,
   ApiGatewayTimeoutResponse,
   ApiInternalServerErrorResponse,
   ApiOkResponse,
   ApiOperation,
   ApiServiceUnavailableResponse,
+  ApiUnauthorizedResponse,
   getSchemaPath,
 } from '@nestjs/swagger';
 import { Request, Response } from 'express';
 import { ExtService } from './ext.service';
 import { RegistrationDto } from 'common/ext/registration.dto';
 import { AuthCookieLifespan, AuthCookieName } from './ext.constants';
+import { AuthGuard } from './auth.guard';
+import { DeviceAuthenticatedRequest } from './types/request';
 
 @Controller({
   path: 'ext',
@@ -50,7 +55,7 @@ export class ExtController {
       },
     },
   })
-  @ApiForbiddenResponse({ description: 'Device not found' })
+  @ApiUnauthorizedResponse({ description: 'Device not found' })
   @ApiServiceUnavailableResponse({
     description: 'Incorrect OneToOne key',
   })
@@ -80,7 +85,7 @@ export class ExtController {
 
     switch (data.message) {
       case 'Device not found':
-        throw new ForbiddenException('Device not in OneToOne');
+        throw new UnauthorizedException('Device not in OneToOne');
 
       case 'The api key is incorrect':
         throw new ServiceUnavailableException(
@@ -108,5 +113,12 @@ export class ExtController {
     return {
       status: data.object,
     };
+  }
+
+  @ApiCookieAuth()
+  @UseGuards(AuthGuard)
+  @Put('ping')
+  ping(@Req() req: DeviceAuthenticatedRequest) {
+    this.logger.log(`Recieved ping from ${req.authToken.sub}`);
   }
 }
