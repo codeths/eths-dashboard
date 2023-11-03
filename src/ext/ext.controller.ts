@@ -2,9 +2,9 @@ import {
   BadGatewayException,
   Body,
   Controller,
+  ForbiddenException,
   InternalServerErrorException,
   Logger,
-  NotFoundException,
   Post,
   Req,
   Res,
@@ -15,9 +15,9 @@ import { IDeviceStatus } from 'common/ext/oneToOneStatus.dto';
 import {
   ApiBadGatewayResponse,
   ApiExtraModels,
+  ApiForbiddenResponse,
   ApiGatewayTimeoutResponse,
   ApiInternalServerErrorResponse,
-  ApiNotFoundResponse,
   ApiOkResponse,
   ApiOperation,
   ApiServiceUnavailableResponse,
@@ -50,7 +50,7 @@ export class ExtController {
       },
     },
   })
-  @ApiNotFoundResponse({ description: 'Device not found' })
+  @ApiForbiddenResponse({ description: 'Device not found' })
   @ApiServiceUnavailableResponse({
     description: 'Incorrect OneToOne key',
   })
@@ -80,7 +80,7 @@ export class ExtController {
 
     switch (data.message) {
       case 'Device not found':
-        throw new NotFoundException('Device not found');
+        throw new ForbiddenException('Device not in OneToOne');
 
       case 'The api key is incorrect':
         throw new ServiceUnavailableException(
