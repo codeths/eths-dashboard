@@ -3,6 +3,7 @@ import { ConfigModule } from '@nestjs/config';
 import { ServeStaticModule } from '@nestjs/serve-static';
 import { join, sep } from 'path';
 import { ExtModule } from './ext/ext.module';
+import { FirebaseModule } from './firebase/firebase.module';
 
 @Module({
   imports: [
@@ -14,6 +15,7 @@ import { ExtModule } from './ext/ext.module';
       isGlobal: true,
     }),
     ExtModule,
+    FirebaseModule,
   ],
   controllers: [],
   providers: [],
