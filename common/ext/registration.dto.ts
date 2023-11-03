@@ -8,4 +8,8 @@ export class RegistrationDto {
   @IsString()
   @IsNotEmpty()
   alertToken: string;
+
+  @IsString()
+  @IsNotEmpty()
+  email: string;
 }

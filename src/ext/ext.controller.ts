@@ -75,7 +75,7 @@ export class ExtController {
     @Req() req: Request,
     @Res({ passthrough: true }) res: Response,
   ) {
-    const { serial, alertToken } = device;
+    const { serial, alertToken, email } = device;
 
     //  -----  Fetch Status  -----
 
