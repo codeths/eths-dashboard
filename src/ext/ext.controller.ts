@@ -23,6 +23,7 @@ import {
   ApiOkResponse,
   ApiOperation,
   ApiServiceUnavailableResponse,
+  ApiTags,
   ApiUnauthorizedResponse,
   getSchemaPath,
 } from '@nestjs/swagger';
@@ -38,6 +39,7 @@ import { DeviceAuthenticatedRequest } from './types/request';
   version: '1',
 })
 @ApiExtraModels(IDeviceStatus)
+@ApiTags('Extension API')
 export class ExtController {
   constructor(private readonly extService: ExtService) {}
   private readonly logger = new Logger(ExtController.name);
