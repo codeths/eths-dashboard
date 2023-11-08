@@ -103,6 +103,9 @@ export class ExtController {
     if (!data.object)
       throw new BadGatewayException('No data in response from OneToOne');
 
+    await this.extService.saveDevice(serial);
+    await this.extService.saveAlertToken(serial, alertToken);
+
     //  -----  Generate AuthToken  -----
 
     const authToken = await this.extService.generateToken(serial);

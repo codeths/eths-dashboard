@@ -4,6 +4,9 @@ import { ConfigService } from '@nestjs/config';
 import axios, { AxiosError } from 'axios';
 import { GatewayTimeoutException } from '@nestjs/common';
 import { JwtModule } from '@nestjs/jwt';
+import { getModelToken } from '@nestjs/mongoose';
+import { Device } from 'src/schemas/Device.schema';
+import { FirebaseToken } from 'src/schemas/FirebaseToken.schema';
 
 jest.mock('axios');
 
@@ -21,6 +24,14 @@ describe('ExtService', () => {
             // mock API key
             getOrThrow: jest.fn(() => ''),
           },
+        },
+        {
+          provide: getModelToken(Device.name),
+          useValue: {},
+        },
+        {
+          provide: getModelToken(FirebaseToken.name),
+          useValue: {},
         },
       ],
     }).compile();

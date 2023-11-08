@@ -3,6 +3,7 @@ import { ExtController } from './ext.controller';
 import { ExtService } from './ext.service';
 import { JwtModule } from '@nestjs/jwt';
 import { ConfigModule, ConfigService } from '@nestjs/config';
+import { SchemasModule } from 'src/schemas/schemas.module';
 
 @Module({
   imports: [
@@ -13,6 +14,7 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
       }),
       inject: [ConfigService],
     }),
+    SchemasModule,
   ],
   providers: [ExtService],
   controllers: [ExtController],

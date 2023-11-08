@@ -10,6 +10,9 @@ import {
 import { JwtModule } from '@nestjs/jwt';
 import { plainToInstance } from 'class-transformer';
 import { RegistrationDto } from 'common/ext/registration.dto';
+import { getModelToken } from '@nestjs/mongoose';
+import { Device } from 'src/schemas/Device.schema';
+import { FirebaseToken } from 'src/schemas/FirebaseToken.schema';
 
 describe('ExtController', () => {
   let controller: ExtController;
@@ -25,6 +28,19 @@ describe('ExtController', () => {
           useValue: {
             // mock API key
             getOrThrow: jest.fn(() => ''),
+          },
+        },
+        {
+          provide: getModelToken(Device.name),
+          useValue: {
+            findOneAndUpdate: jest.fn(),
+            findOne: jest.fn(() => ({ id: 'AAA' })),
+          },
+        },
+        {
+          provide: getModelToken(FirebaseToken.name),
+          useValue: {
+            findOneAndUpdate: jest.fn(),
           },
         },
       ],
