@@ -104,11 +104,17 @@ export class ExtController {
       throw new BadGatewayException('No data in response from OneToOne');
 
     await this.extService.saveDevice(serial);
-    await this.extService.saveAlertToken(serial, alertToken);
+    const alertTokenDoc = await this.extService.saveAlertToken(
+      serial,
+      alertToken,
+    );
 
     //  -----  Generate AuthToken  -----
 
-    const authToken = await this.extService.generateToken(serial);
+    const authToken = await this.extService.generateToken(
+      serial,
+      alertTokenDoc.id,
+    );
 
     res.cookie(AuthCookieName, authToken, {
       httpOnly: true,
@@ -123,7 +129,10 @@ export class ExtController {
   @ApiCookieAuth()
   @UseGuards(AuthGuard)
   @Put('ping')
-  ping(@Req() req: DeviceAuthenticatedRequest) {
-    this.logger.log(`Recieved ping from ${req.authToken.sub}`);
+  async ping(@Req() req: DeviceAuthenticatedRequest) {
+    const { sub: serial, alerts: alertTokenId } = req.authToken;
+
+    this.logger.log(`Recieved ping from ${serial}`);
+    this.extService.handlePing(serial, alertTokenId);
   }
 }

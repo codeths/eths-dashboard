@@ -39,10 +39,11 @@ export class ExtService {
 
     return { data };
   }
-  async generateToken(deviceSerial: string) {
+  async generateToken(deviceSerial: string, alertTokenId: string) {
     const payload: AuthTokenV1 = {
       v: 1,
       sub: deviceSerial,
+      alerts: alertTokenId,
     };
     const options: JwtSignOptions = {
       algorithm: AuthCookieAlgorithm,
@@ -75,5 +76,13 @@ export class ExtService {
       { upsert: true, new: true },
     );
     return alertTokenDoc;
+  }
+  async handlePing(deviceSerial: string, alertTokenId: string) {
+    const alertTokenDoc = await this.firebaseTokenModel.findByIdAndUpdate(
+      alertTokenId,
+      { lastUsed: new Date() },
+      { new: true },
+    );
+    return { alertTokenDoc };
   }
 }
