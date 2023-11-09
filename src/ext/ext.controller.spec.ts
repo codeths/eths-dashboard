@@ -13,6 +13,7 @@ import { RegistrationDto } from 'common/ext/registration.dto';
 import { getModelToken } from '@nestjs/mongoose';
 import { Device } from 'src/schemas/Device.schema';
 import { FirebaseToken } from 'src/schemas/FirebaseToken.schema';
+import { FirebaseService } from 'src/firebase/firebase.service';
 
 describe('ExtController', () => {
   let controller: ExtController;
@@ -28,6 +29,12 @@ describe('ExtController', () => {
           useValue: {
             // mock API key
             getOrThrow: jest.fn(() => ''),
+          },
+        },
+        {
+          provide: FirebaseService,
+          useValue: {
+            mapTokenToDevice: jest.fn(),
           },
         },
         {
