@@ -33,14 +33,14 @@ describe('ExtController', () => {
         {
           provide: getModelToken(Device.name),
           useValue: {
-            findOneAndUpdate: jest.fn(),
+            findOneAndUpdate: jest.fn(() => ({ id: 'AAA' })),
             findOne: jest.fn(() => ({ id: 'AAA' })),
           },
         },
         {
           provide: getModelToken(FirebaseToken.name),
           useValue: {
-            findOneAndUpdate: jest.fn(),
+            findOneAndUpdate: jest.fn(() => ({ id: 'AAA' })),
           },
         },
       ],

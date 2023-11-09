@@ -71,6 +71,6 @@ describe('ExtService', () => {
     }).rejects.toThrow(GatewayTimeoutException);
   });
   it('[generateToken] should should return an auth token', () => {
-    expect(service.generateToken('')).resolves.toBeTruthy();
+    expect(service.generateToken('', '')).resolves.toBeTruthy();
   });
 });
