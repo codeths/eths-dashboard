@@ -33,6 +33,7 @@ import { RegistrationDto } from 'common/ext/registration.dto';
 import { AuthCookieLifespan, AuthCookieName } from './ext.constants';
 import { AuthGuard } from './auth.guard';
 import { DeviceAuthenticatedRequest } from './types/request';
+import { FirebaseService } from 'src/firebase/firebase.service';
 
 @Controller({
   path: 'ext',
@@ -41,7 +42,10 @@ import { DeviceAuthenticatedRequest } from './types/request';
 @ApiExtraModels(IDeviceStatus)
 @ApiTags('Extension API')
 export class ExtController {
-  constructor(private readonly extService: ExtService) {}
+  constructor(
+    private readonly extService: ExtService,
+    private readonly firebaseService: FirebaseService,
+  ) {}
   private readonly logger = new Logger(ExtController.name);
 
   @ApiOperation({
@@ -108,6 +112,8 @@ export class ExtController {
       serial,
       alertToken,
     );
+
+    await this.firebaseService.mapTokenToDevice(serial, alertToken);
 
     //  -----  Generate AuthToken  -----
 

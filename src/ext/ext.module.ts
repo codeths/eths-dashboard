@@ -4,6 +4,7 @@ import { ExtService } from './ext.service';
 import { JwtModule } from '@nestjs/jwt';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { SchemasModule } from 'src/schemas/schemas.module';
+import { FirebaseModule } from 'src/firebase/firebase.module';
 
 @Module({
   imports: [
@@ -15,6 +16,7 @@ import { SchemasModule } from 'src/schemas/schemas.module';
       inject: [ConfigService],
     }),
     SchemasModule,
+    FirebaseModule,
   ],
   providers: [ExtService],
   controllers: [ExtController],

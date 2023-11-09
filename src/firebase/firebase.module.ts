@@ -4,5 +4,6 @@ import { FirebaseService } from './firebase.service';
 
 @Module({
   providers: [MessagingProvider, FirebaseService],
+  exports: [FirebaseService],
 })
 export class FirebaseModule {}

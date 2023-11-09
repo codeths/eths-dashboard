@@ -1,13 +1,12 @@
-import * as admin from 'firebase-admin'; // https://github.com/firebase/firebase-admin-node/issues/593
+import { initializeApp, applicationDefault } from 'firebase-admin/app';
 import { getMessaging } from 'firebase-admin/messaging';
-import * as firebaseConfig from '../../firebase.json';
 
 export const MessagingInjectionToken = 'MESSAGING_PROVIDER';
 
 export const MessagingProvider = {
   provide: MessagingInjectionToken,
   useFactory: async () => {
-    const app = admin.initializeApp(firebaseConfig);
+    const app = initializeApp({ credential: applicationDefault() });
     return getMessaging(app);
   },
 };

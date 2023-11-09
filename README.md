@@ -10,6 +10,10 @@
 $ npm install
 ```
 
+## Configuration
+1. [Create `firebase.json`](https://firebase.google.com/docs/admin/setup#initialize_the_sdk_in_non-google_environments)
+2. Create `.env`
+
 ## Running the app
 
 ```bash
