@@ -35,6 +35,7 @@ describe('ExtController', () => {
           provide: FirebaseService,
           useValue: {
             mapTokenToDevice: jest.fn(),
+            attemptSend: jest.fn(),
           },
         },
         {

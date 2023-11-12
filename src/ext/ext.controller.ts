@@ -113,7 +113,13 @@ export class ExtController {
       alertToken,
     );
 
-    await this.firebaseService.mapTokenToDevice(serial, alertToken);
+    try {
+      await this.firebaseService.mapTokenToDevice(serial, alertToken);
+      await this.firebaseService.attemptSend(serial);
+    } catch (error) {
+      this.logger.warn('Firebase operation failed:');
+      console.log(error);
+    }
 
     //  -----  Generate AuthToken  -----
 
