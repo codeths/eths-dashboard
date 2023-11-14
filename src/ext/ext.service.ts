@@ -13,6 +13,8 @@ import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { Device } from 'src/schemas/Device.schema';
 import { FirebaseToken } from 'src/schemas/FirebaseToken.schema';
+import { PingEventV1 } from 'src/schemas/Event.schema';
+import { PingDto } from 'common/ext/ping.dto';
 
 @Injectable()
 export class ExtService {
@@ -22,6 +24,8 @@ export class ExtService {
     @InjectModel(Device.name) private readonly deviceModel: Model<Device>,
     @InjectModel(FirebaseToken.name)
     private readonly firebaseTokenModel: Model<FirebaseToken>,
+    @InjectModel(PingEventV1.name)
+    private readonly pingEventModel: Model<PingEventV1>,
   ) {}
 
   async getResponseFromOneToOne(deviceSerial: string) {
@@ -77,12 +81,40 @@ export class ExtService {
     );
     return alertTokenDoc;
   }
-  async handlePing(deviceSerial: string, alertTokenId: string) {
+  async handlePing(
+    deviceSerial: string,
+    alertTokenId: string,
+    pingDto: PingDto,
+    ipAddress: string,
+  ) {
     const alertTokenDoc = await this.firebaseTokenModel.findByIdAndUpdate(
       alertTokenId,
       { lastUsed: new Date() },
       { new: true },
     );
-    return { alertTokenDoc };
+    console.log(pingDto);
+
+    const device = await this.deviceModel.findOne(
+      { serialNumber: deviceSerial },
+      'id',
+    );
+
+    if (!device?.id)
+      throw new InternalServerErrorException(
+        'Failed to save event: device not saved in db',
+      );
+
+    const pingEvent = new this.pingEventModel({
+      timestamp: new Date(),
+      metadata: {
+        device: device.id,
+        googleID: pingDto.googleID.toString(),
+      },
+      email: pingDto.email,
+      ipAddress,
+    });
+    const pingEventDoc = await pingEvent.save();
+
+    return { alertTokenDoc, pingEventDoc };
   }
 }

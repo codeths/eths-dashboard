@@ -4,6 +4,9 @@
 
 [Nest](https://github.com/nestjs/nest) framework TypeScript starter repository.
 
+## Requirements
+* MongoDB >= 6.0
+
 ## Installation
 
 ```bash

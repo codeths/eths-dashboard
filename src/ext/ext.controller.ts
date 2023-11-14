@@ -3,6 +3,7 @@ import {
   Body,
   Controller,
   InternalServerErrorException,
+  Ip,
   Logger,
   Post,
   Put,
@@ -30,6 +31,7 @@ import {
 import { Request, Response } from 'express';
 import { ExtService } from './ext.service';
 import { RegistrationDto } from 'common/ext/registration.dto';
+import { PingDto } from 'common/ext/ping.dto';
 import { AuthCookieLifespan, AuthCookieName } from './ext.constants';
 import { AuthGuard } from './auth.guard';
 import { DeviceAuthenticatedRequest } from './types/request';
@@ -141,10 +143,14 @@ export class ExtController {
   @ApiCookieAuth()
   @UseGuards(AuthGuard)
   @Put('ping')
-  async ping(@Req() req: DeviceAuthenticatedRequest) {
+  async ping(
+    @Req() req: DeviceAuthenticatedRequest,
+    @Body(new ValidationPipe({ enableDebugMessages: true })) pingDto: PingDto,
+    @Ip() ipAddress: string,
+  ) {
     const { sub: serial, alerts: alertTokenId } = req.authToken;
 
     this.logger.log(`Recieved ping from ${serial}`);
-    this.extService.handlePing(serial, alertTokenId);
+    this.extService.handlePing(serial, alertTokenId, pingDto, ipAddress);
   }
 }
