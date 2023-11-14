@@ -5,7 +5,7 @@ export type DeviceDocument = HydratedDocument<Device>;
 
 @Schema()
 export class Device {
-  @Prop({ required: true })
+  @Prop({ required: true, index: { unique: true } })
   serialNumber: string;
 }
 
