@@ -1,6 +1,7 @@
 import { IsNotEmpty, IsString } from 'class-validator';
+import { PingDto } from './ping.dto';
 
-export class RegistrationDto {
+export class RegistrationDto extends PingDto {
   @IsString()
   @IsNotEmpty()
   serial: string;
@@ -8,8 +9,4 @@ export class RegistrationDto {
   @IsString()
   @IsNotEmpty()
   alertToken: string;
-
-  @IsString()
-  @IsNotEmpty()
-  email: string;
 }

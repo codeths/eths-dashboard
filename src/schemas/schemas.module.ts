@@ -8,6 +8,7 @@ import {
   PingEventV1,
   PingEventV1Schema,
 } from './Event.schema';
+import { ExtUser, ExtUserSchema } from './ExtUser.schema';
 
 const schemas = MongooseModule.forFeature([
   { name: Device.name, schema: DeviceSchema },
@@ -22,6 +23,7 @@ const schemas = MongooseModule.forFeature([
       },
     ],
   },
+  { name: ExtUser.name, schema: ExtUserSchema },
 ]);
 
 @Module({
