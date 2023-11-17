@@ -22,8 +22,8 @@ class Metadata {
   @Prop({ required: true, type: mongoose.Schema.Types.ObjectId })
   device: string;
 
-  @Prop({ required: true })
-  googleID: string;
+  @Prop({ required: true, type: mongoose.Schema.Types.ObjectId })
+  user: string;
 }
 const MetadataSchema = SchemaFactory.createForClass(Metadata);
 
@@ -31,9 +31,6 @@ const MetadataSchema = SchemaFactory.createForClass(Metadata);
 export class PingEventV1 extends Event {
   @Prop({ required: true, type: MetadataSchema })
   metadata: Metadata;
-
-  @Prop({ required: true })
-  email: string;
 
   @Prop({ required: true })
   ipAddress: string;

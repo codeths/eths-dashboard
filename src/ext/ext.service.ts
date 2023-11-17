@@ -15,6 +15,7 @@ import { Device } from 'src/schemas/Device.schema';
 import { FirebaseToken } from 'src/schemas/FirebaseToken.schema';
 import { PingEventV1 } from 'src/schemas/Event.schema';
 import { PingDto } from 'common/ext/ping.dto';
+import { ExtUser } from 'src/schemas/ExtUser.schema';
 
 @Injectable()
 export class ExtService {
@@ -26,6 +27,7 @@ export class ExtService {
     private readonly firebaseTokenModel: Model<FirebaseToken>,
     @InjectModel(PingEventV1.name)
     private readonly pingEventModel: Model<PingEventV1>,
+    @InjectModel(ExtUser.name) private readonly userModel: Model<ExtUser>,
   ) {}
 
   async getResponseFromOneToOne(deviceSerial: string) {
@@ -55,6 +57,14 @@ export class ExtService {
     return await this.jwtService.signAsync(payload, options);
   }
 
+  async saveUser(email: string, googleID: string) {
+    const userDoc = await this.userModel.findOneAndUpdate(
+      { googleID },
+      { email },
+      { upsert: true, new: true },
+    );
+    return userDoc;
+  }
   async saveDevice(deviceSerial: string) {
     const deviceDoc = await this.deviceModel.findOneAndUpdate(
       { serialNumber: deviceSerial },
@@ -82,7 +92,7 @@ export class ExtService {
     return alertTokenDoc;
   }
   async handlePing(
-    deviceSerial: string,
+    deviceID: string,
     alertTokenId: string,
     pingDto: PingDto,
     ipAddress: string,
@@ -94,23 +104,15 @@ export class ExtService {
     );
     console.log(pingDto);
 
-    const device = await this.deviceModel.findOne(
-      { serialNumber: deviceSerial },
-      'id',
-    );
-
-    if (!device?.id)
-      throw new InternalServerErrorException(
-        'Failed to save event: device not saved in db',
-      );
+    const { email, googleID } = pingDto;
+    const userDoc = await this.saveUser(email, googleID);
 
     const pingEvent = new this.pingEventModel({
       timestamp: new Date(),
       metadata: {
-        device: device.id,
-        googleID: pingDto.googleID.toString(),
+        device: deviceID,
+        user: userDoc.id,
       },
-      email: pingDto.email,
       ipAddress,
     });
     const pingEventDoc = await pingEvent.save();

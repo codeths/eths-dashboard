@@ -81,7 +81,7 @@ export class ExtController {
     @Req() req: Request,
     @Res({ passthrough: true }) res: Response,
   ) {
-    const { serial, alertToken, email } = device;
+    const { serial, alertToken, email, googleID } = device;
 
     //  -----  Fetch Status  -----
 
@@ -109,11 +109,13 @@ export class ExtController {
     if (!data.object)
       throw new BadGatewayException('No data in response from OneToOne');
 
-    await this.extService.saveDevice(serial);
+    const deviceDoc = await this.extService.saveDevice(serial);
     const alertTokenDoc = await this.extService.saveAlertToken(
       serial,
       alertToken,
     );
+
+    const userDoc = await this.extService.saveUser(email, googleID);
 
     try {
       await this.firebaseService.mapTokenToDevice(serial, alertToken);
@@ -126,7 +128,7 @@ export class ExtController {
     //  -----  Generate AuthToken  -----
 
     const authToken = await this.extService.generateToken(
-      serial,
+      deviceDoc.id,
       alertTokenDoc.id,
     );
 
@@ -148,9 +150,9 @@ export class ExtController {
     @Body(new ValidationPipe({ enableDebugMessages: true })) pingDto: PingDto,
     @Ip() ipAddress: string,
   ) {
-    const { sub: serial, alerts: alertTokenId } = req.authToken;
+    const { sub: deviceID, alerts: alertTokenId } = req.authToken;
 
-    this.logger.log(`Recieved ping from ${serial}`);
-    this.extService.handlePing(serial, alertTokenId, pingDto, ipAddress);
+    this.logger.log(`Recieved ping from ${deviceID}`);
+    this.extService.handlePing(deviceID, alertTokenId, pingDto, ipAddress);
   }
 }

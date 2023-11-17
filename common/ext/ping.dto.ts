@@ -1,9 +1,9 @@
-import { IsNotEmpty, IsString, IsInt } from 'class-validator';
+import { IsNotEmpty, IsString } from 'class-validator';
 
 export class PingDto {
-  @IsInt()
+  @IsString()
   @IsNotEmpty()
-  googleID: number;
+  googleID: string;
 
   @IsString()
   @IsNotEmpty()
