@@ -7,7 +7,7 @@ import { JwtModule } from '@nestjs/jwt';
 import { getModelToken } from '@nestjs/mongoose';
 import { Device } from 'src/schemas/Device.schema';
 import { FirebaseToken } from 'src/schemas/FirebaseToken.schema';
-import { PingEventV1 } from 'src/schemas/Event.schema';
+import { PingEventV1, RegistrationEventV1 } from 'src/schemas/Event.schema';
 import { ExtUser } from 'src/schemas/ExtUser.schema';
 
 jest.mock('axios');
@@ -41,6 +41,10 @@ describe('ExtService', () => {
         },
         {
           provide: getModelToken(ExtUser.name),
+          useValue: {},
+        },
+        {
+          provide: getModelToken(RegistrationEventV1.name),
           useValue: {},
         },
       ],

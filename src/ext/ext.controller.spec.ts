@@ -14,7 +14,7 @@ import { getModelToken } from '@nestjs/mongoose';
 import { Device } from 'src/schemas/Device.schema';
 import { FirebaseToken } from 'src/schemas/FirebaseToken.schema';
 import { FirebaseService } from 'src/firebase/firebase.service';
-import { PingEventV1 } from 'src/schemas/Event.schema';
+import { PingEventV1, RegistrationEventV1 } from 'src/schemas/Event.schema';
 import { ExtUser } from 'src/schemas/ExtUser.schema';
 
 describe('ExtController', () => {
@@ -62,8 +62,14 @@ describe('ExtController', () => {
         {
           provide: getModelToken(ExtUser.name),
           useValue: {
-            findOneAndUpdate: jest.fn(),
+            findOneAndUpdate: jest.fn(() => ({ id: 'AAA' })),
           },
+        },
+        {
+          provide: getModelToken(RegistrationEventV1.name),
+          useValue: jest.fn(() => ({
+            save: jest.fn(),
+          })),
         },
       ],
       controllers: [ExtController],

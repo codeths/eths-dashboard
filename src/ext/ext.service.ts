@@ -1,8 +1,4 @@
-import {
-  GatewayTimeoutException,
-  Injectable,
-  InternalServerErrorException,
-} from '@nestjs/common';
+import { GatewayTimeoutException, Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { JwtService, JwtSignOptions } from '@nestjs/jwt';
 import axios from 'axios';
@@ -13,8 +9,7 @@ import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { Device } from 'src/schemas/Device.schema';
 import { FirebaseToken } from 'src/schemas/FirebaseToken.schema';
-import { PingEventV1 } from 'src/schemas/Event.schema';
-import { PingDto } from 'common/ext/ping.dto';
+import { PingEventV1, RegistrationEventV1 } from 'src/schemas/Event.schema';
 import { ExtUser } from 'src/schemas/ExtUser.schema';
 
 @Injectable()
@@ -28,6 +23,8 @@ export class ExtService {
     @InjectModel(PingEventV1.name)
     private readonly pingEventModel: Model<PingEventV1>,
     @InjectModel(ExtUser.name) private readonly userModel: Model<ExtUser>,
+    @InjectModel(RegistrationEventV1.name)
+    private readonly registrationEventModel: Model<RegistrationEventV1>,
   ) {}
 
   async getResponseFromOneToOne(deviceSerial: string) {
@@ -45,6 +42,7 @@ export class ExtService {
 
     return { data };
   }
+
   async generateToken(deviceSerial: string, alertTokenId: string) {
     const payload: AuthTokenV1 = {
       v: 1,
@@ -73,50 +71,51 @@ export class ExtService {
     );
     return deviceDoc;
   }
-  async saveAlertToken(deviceSerial: string, alertToken: string) {
-    const device = await this.deviceModel.findOne(
-      { serialNumber: deviceSerial },
-      'id',
-    );
-
-    if (!device?.id)
-      throw new InternalServerErrorException(
-        'Failed to save alert token: device not saved in db',
-      );
-
+  async saveAlertToken(deviceID: string, alertToken: string) {
     const alertTokenDoc = await this.firebaseTokenModel.findOneAndUpdate(
       { token: alertToken },
-      { lastUsed: new Date(), device: device.id },
+      { lastUsed: new Date(), device: deviceID },
       { upsert: true, new: true },
     );
     return alertTokenDoc;
   }
-  async handlePing(
-    deviceID: string,
-    alertTokenId: string,
-    pingDto: PingDto,
-    ipAddress: string,
-  ) {
+  async updateAlertToken(alertTokenID: string) {
     const alertTokenDoc = await this.firebaseTokenModel.findByIdAndUpdate(
-      alertTokenId,
+      alertTokenID,
       { lastUsed: new Date() },
       { new: true },
     );
-    console.log(pingDto);
+    return alertTokenDoc;
+  }
 
-    const { email, googleID } = pingDto;
-    const userDoc = await this.saveUser(email, googleID);
-
-    const pingEvent = new this.pingEventModel({
+  async generatePingEvent(deviceID: string, userID: string, ipAddress: string) {
+    const pingEventDoc = await new this.pingEventModel({
       timestamp: new Date(),
       metadata: {
         device: deviceID,
-        user: userDoc.id,
+        user: userID,
       },
       ipAddress,
-    });
-    const pingEventDoc = await pingEvent.save();
+    }).save();
 
-    return { alertTokenDoc, pingEventDoc };
+    return pingEventDoc;
+  }
+  async generateRegistrationEvent(
+    deviceID: string,
+    userID: string,
+    alertTokenID: string,
+    ipAddress: string,
+  ) {
+    const registrationEventDoc = await new this.registrationEventModel({
+      timestamp: new Date(),
+      metadata: {
+        device: deviceID,
+        user: userID,
+      },
+      ipAddress: ipAddress,
+      alertToken: alertTokenID,
+    }).save();
+
+    return registrationEventDoc;
   }
 }

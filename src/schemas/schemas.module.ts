@@ -7,6 +7,8 @@ import {
   EventSchema,
   PingEventV1,
   PingEventV1Schema,
+  RegistrationEventV1,
+  RegistrationEventV1Schema,
 } from './Event.schema';
 import { ExtUser, ExtUserSchema } from './ExtUser.schema';
 
@@ -20,6 +22,10 @@ const schemas = MongooseModule.forFeature([
       {
         name: PingEventV1.name,
         schema: PingEventV1Schema,
+      },
+      {
+        name: RegistrationEventV1.name,
+        schema: RegistrationEventV1Schema,
       },
     ],
   },

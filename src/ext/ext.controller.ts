@@ -28,7 +28,7 @@ import {
   ApiUnauthorizedResponse,
   getSchemaPath,
 } from '@nestjs/swagger';
-import { Request, Response } from 'express';
+import { Response } from 'express';
 import { ExtService } from './ext.service';
 import { RegistrationDto } from 'common/ext/registration.dto';
 import { PingDto } from 'common/ext/ping.dto';
@@ -78,7 +78,7 @@ export class ExtController {
   async register(
     @Body(new ValidationPipe({ enableDebugMessages: true }))
     device: RegistrationDto,
-    @Req() req: Request,
+    @Ip() ipAddress: string,
     @Res({ passthrough: true }) res: Response,
   ) {
     const { serial, alertToken, email, googleID } = device;
@@ -109,13 +109,23 @@ export class ExtController {
     if (!data.object)
       throw new BadGatewayException('No data in response from OneToOne');
 
+    //  -----  DB Operations  -----
+
+    const userDoc = await this.extService.saveUser(email, googleID);
     const deviceDoc = await this.extService.saveDevice(serial);
     const alertTokenDoc = await this.extService.saveAlertToken(
-      serial,
+      deviceDoc.id,
       alertToken,
     );
 
-    const userDoc = await this.extService.saveUser(email, googleID);
+    await this.extService.generateRegistrationEvent(
+      deviceDoc.id,
+      userDoc.id,
+      alertTokenDoc.id,
+      ipAddress,
+    );
+
+    //  -----  Init Firebase  -----
 
     try {
       await this.firebaseService.mapTokenToDevice(serial, alertToken);
@@ -150,9 +160,11 @@ export class ExtController {
     @Body(new ValidationPipe({ enableDebugMessages: true })) pingDto: PingDto,
     @Ip() ipAddress: string,
   ) {
-    const { sub: deviceID, alerts: alertTokenId } = req.authToken;
+    const { sub: deviceID, alerts: alertTokenID } = req.authToken;
+    const { email, googleID } = pingDto;
 
-    this.logger.log(`Recieved ping from ${deviceID}`);
-    this.extService.handlePing(deviceID, alertTokenId, pingDto, ipAddress);
+    const userDoc = await this.extService.saveUser(email, googleID);
+    await this.extService.updateAlertToken(alertTokenID);
+    await this.extService.generatePingEvent(deviceID, userDoc.id, ipAddress);
   }
 }
