@@ -11,7 +11,7 @@ export class FirebaseService {
   ) {}
   private readonly logger = new Logger(FirebaseService.name);
 
-  getSerialTopic(deviceSerial: string) {
+  private getSerialTopic(deviceSerial: string) {
     return `serial_${deviceSerial}`;
   }
 
@@ -27,7 +27,7 @@ export class FirebaseService {
   }
   async attemptSend(deviceSerial: string) {
     const messageID = randomUUID();
-    this.logger.log(`Sending message; ID = ${messageID}`);
+    this.logger.debug(`Sending message; ID = ${messageID}`);
 
     return await this.messagingService.send({
       data: {
@@ -35,5 +35,14 @@ export class FirebaseService {
       },
       topic: this.getSerialTopic(deviceSerial),
     });
+  }
+
+  async unsubscribe(deviceSerial: string, firebaseToken: string) {
+    try {
+      await this.messagingService.unsubscribeFromTopic(
+        firebaseToken,
+        this.getSerialTopic(deviceSerial),
+      );
+    } catch (error) {}
   }
 }

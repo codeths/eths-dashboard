@@ -5,7 +5,9 @@ import { join, sep } from 'path';
 import { ExtModule } from './ext/ext.module';
 import { FirebaseModule } from './firebase/firebase.module';
 import { MongooseModule } from '@nestjs/mongoose';
+import { AppWorker } from './app.worker';
 import { SchemasModule } from './schemas/schemas.module';
+import { ScheduleModule } from '@nestjs/schedule';
 
 @Module({
   imports: [
@@ -28,8 +30,9 @@ import { SchemasModule } from './schemas/schemas.module';
       inject: [ConfigService],
     }),
     SchemasModule,
+    ScheduleModule.forRoot(),
   ],
   controllers: [],
-  providers: [],
+  providers: [AppWorker],
 })
 export class AppModule {}
