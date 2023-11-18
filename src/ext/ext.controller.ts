@@ -153,6 +153,7 @@ export class ExtController {
   }
 
   @ApiCookieAuth()
+  @ApiUnauthorizedResponse({ description: 'Invalid or expired auth token' })
   @UseGuards(AuthGuard)
   @Put('ping')
   async ping(

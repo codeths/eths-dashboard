@@ -5,6 +5,7 @@ import { JwtModule } from '@nestjs/jwt';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { SchemasModule } from 'src/schemas/schemas.module';
 import { FirebaseModule } from 'src/firebase/firebase.module';
+import { AuthTokenLifespanDays } from './ext.constants';
 
 @Module({
   imports: [
@@ -12,6 +13,9 @@ import { FirebaseModule } from 'src/firebase/firebase.module';
       imports: [ConfigModule],
       useFactory: async (configService: ConfigService) => ({
         secret: configService.getOrThrow<string>('EXT_JWT_SECRET'),
+        verifyOptions: {
+          maxAge: `${AuthTokenLifespanDays}d`,
+        },
       }),
       inject: [ConfigService],
     }),

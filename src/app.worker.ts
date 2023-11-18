@@ -5,6 +5,7 @@ import { Model } from 'mongoose';
 import { FirebaseToken } from './schemas/FirebaseToken.schema';
 import { DeviceDocument } from './schemas/Device.schema';
 import { FirebaseService } from './firebase/firebase.service';
+import { AuthTokenLifespanDays } from './ext/ext.constants';
 
 @Injectable()
 export class AppWorker implements OnApplicationBootstrap {
@@ -22,7 +23,7 @@ export class AppWorker implements OnApplicationBootstrap {
     this.logger.verbose('Removing old Firebase tokens...');
 
     const expiration = new Date();
-    expiration.setMonth(expiration.getMonth() - 2);
+    expiration.setDate(expiration.getDate() - AuthTokenLifespanDays);
     const expiredTokens = await this.firebaseTokenModel
       .find({
         lastUsed: { $lt: expiration },
