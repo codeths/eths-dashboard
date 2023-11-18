@@ -1,5 +1,8 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import mongoose, { HydratedDocument } from 'mongoose';
+import { Device } from './Device.schema';
+import { ExtUser } from './ExtUser.schema';
+import { FirebaseToken } from './FirebaseToken.schema';
 
 @Schema({
   timeseries: {
@@ -25,10 +28,18 @@ class NetworkEvent extends Event {
 
 @Schema({ _id: false })
 class PingMetadata {
-  @Prop({ required: true, type: mongoose.Schema.Types.ObjectId })
+  @Prop({
+    required: true,
+    type: mongoose.Schema.Types.ObjectId,
+    ref: Device.name,
+  })
   device: string;
 
-  @Prop({ required: true, type: mongoose.Schema.Types.ObjectId })
+  @Prop({
+    required: true,
+    type: mongoose.Schema.Types.ObjectId,
+    ref: ExtUser.name,
+  })
   user: string;
 }
 const PingMetadataSchema = SchemaFactory.createForClass(PingMetadata);
@@ -46,7 +57,11 @@ export class RegistrationEventV1 extends NetworkEvent {
   @Prop({ required: true, type: PingMetadataSchema })
   metadata: PingMetadata;
 
-  @Prop({ required: true, type: mongoose.Schema.Types.ObjectId })
+  @Prop({
+    required: true,
+    type: mongoose.Schema.Types.ObjectId,
+    ref: FirebaseToken.name,
+  })
   alertToken: string;
 }
 export const RegistrationEventV1Schema =
