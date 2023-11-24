@@ -114,7 +114,7 @@ describe('ExtController', () => {
     return await controller.register(device, req, res);
   }
 
-  it('[POST /register] should error if response is unsucessful', () => {
+  it('[POST /register] should error if response is unsuccessful', () => {
     mockedExtResponse.mockImplementationOnce(() =>
       Promise.resolve({ data: { ...response.data, success: false } }),
     );
