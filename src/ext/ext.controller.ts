@@ -2,6 +2,7 @@ import {
   BadGatewayException,
   Body,
   Controller,
+  Header,
   InternalServerErrorException,
   Ip,
   Logger,
@@ -75,6 +76,7 @@ export class ExtController {
     description: 'Failed to communicate with OneToOne',
   })
   @Post('register')
+  @Header('Access-Control-Allow-Origin', '*')
   async register(
     @Body(new ValidationPipe({ enableDebugMessages: true }))
     device: RegistrationDto,
@@ -156,6 +158,7 @@ export class ExtController {
   @ApiUnauthorizedResponse({ description: 'Invalid or expired auth token' })
   @UseGuards(AuthGuard)
   @Put('ping')
+  @Header('Access-Control-Allow-Origin', '*')
   async ping(
     @Req() req: DeviceAuthenticatedRequest,
     @Body(new ValidationPipe({ enableDebugMessages: true })) pingDto: PingDto,
