@@ -3,6 +3,7 @@ import { AppModule } from './app.module';
 import { Logger, VersioningType } from '@nestjs/common';
 import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
 import * as cookieParser from 'cookie-parser';
+import { ConfigService } from '@nestjs/config';
 
 async function bootstrap() {
   const logger = new Logger('APP');
@@ -13,7 +14,8 @@ async function bootstrap() {
     type: VersioningType.URI,
   });
 
-  if (process.env.NODE_ENV !== 'production') {
+  const config = app.get<ConfigService>(ConfigService);
+  if (config.get('NODE_ENV') !== 'production') {
     const config = new DocumentBuilder()
       .setTitle('Dashboard API')
       .setDescription(
