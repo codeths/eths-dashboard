@@ -153,7 +153,7 @@ export class ExtController {
   }
 
   @ApiCookieAuth()
-  @ApiUnauthorizedResponse({ description: 'Invalid or expired auth token' })
+  @ApiUnauthorizedResponse({ description: 'Invalid or expired session' })
   @UseGuards(AuthGuard)
   @Put('ping')
   async ping(
@@ -164,8 +164,9 @@ export class ExtController {
     const { sub: deviceID, alerts: alertTokenID } = req.authToken;
     const { email, googleID } = pingDto;
 
+    const alertTokenDoc = await this.extService.updateAlertToken(alertTokenID);
+    if (!alertTokenDoc) throw new UnauthorizedException();
     const userDoc = await this.extService.saveUser(email, googleID);
-    await this.extService.updateAlertToken(alertTokenID);
     await this.extService.generatePingEvent(deviceID, userDoc.id, ipAddress);
   }
 }
