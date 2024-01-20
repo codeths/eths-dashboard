@@ -145,6 +145,8 @@ export class ExtController {
     res.cookie(AuthCookieName, authToken, {
       httpOnly: true,
       maxAge: AuthCookieLifespan,
+      sameSite: 'none',
+      secure: true,
     });
 
     return {
