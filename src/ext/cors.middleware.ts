@@ -12,6 +12,7 @@ export class CorsMiddleware implements NestMiddleware {
       `chrome-extension://${extensionID}`,
     );
     res.setHeader('Access-Control-Allow-Credentials', 'true');
+    res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
 
     if (req.method.toUpperCase() === 'OPTIONS') {
       res.sendStatus(204);
