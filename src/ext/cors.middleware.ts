@@ -13,6 +13,7 @@ export class CorsMiddleware implements NestMiddleware {
     );
     res.setHeader('Access-Control-Allow-Credentials', 'true');
     res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+    res.setHeader('Access-Control-Allow-Methods', 'POST, PUT');
 
     if (req.method.toUpperCase() === 'OPTIONS') {
       res.sendStatus(204);
