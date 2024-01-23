@@ -12,7 +12,7 @@ import { ScheduleModule } from '@nestjs/schedule';
 @Module({
   imports: [
     ServeStaticModule.forRoot({
-      rootPath: join(__dirname, '..', sep, '..', 'client'),
+      rootPath: join(__dirname, '..', '..', 'frontend-dist'),
       exclude: ['/api/(.*)'],
     }),
     ConfigModule.forRoot({
