@@ -3,14 +3,17 @@ name: Docker
 on:
   push:
     tags:
-      - v*
-
-env:
-  IMAGE_NAME: server
+      - 'v*.*.*'
+      - 'b*.*.*'
 
 jobs:
   docker:
     runs-on: ubuntu-latest
+
+    strategy:
+      matrix:
+        environment: ${{ fromJSON( startsWith( github.ref_name, 'v' ) && '["server", "server-beta"]' || '["server-beta"]' ) }}
+
     steps:
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
@@ -26,7 +29,7 @@ jobs:
         id: meta
         uses: docker/metadata-action@v5
         with:
-          images: ghcr.io/${{ github.repository }}/${{ env.IMAGE_NAME }}
+          images: ghcr.io/${{ github.repository }}/${{ matrix.environment }}
           flavor: latest=true
           tags: type=semver,pattern={{version}}
 
