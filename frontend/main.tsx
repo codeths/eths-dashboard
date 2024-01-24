@@ -8,6 +8,7 @@ import {
   useNavigate,
 } from 'react-router-dom';
 import Typography from '@mui/joy/Typography';
+import { CssVarsProvider } from '@mui/joy/styles';
 
 import '@fontsource/inter';
 import Login from './pages/login';
@@ -22,7 +23,9 @@ function App() {
 
   return (
     <AuthProvider authenticated={authenticated}>
-      <Outlet />
+      <CssVarsProvider defaultMode="system">
+        <Outlet />
+      </CssVarsProvider>
     </AuthProvider>
   );
 }
@@ -41,7 +44,7 @@ const router = createBrowserRouter([
     path: '/',
     element: <App />,
     loader: (): AppLoaderData => {
-      return { authenticated: true };
+      return { authenticated: false };
     },
     children: [
       {
