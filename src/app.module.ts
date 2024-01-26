@@ -8,6 +8,8 @@ import { MongooseModule } from '@nestjs/mongoose';
 import { AppWorker } from './app.worker';
 import { SchemasModule } from './schemas/schemas.module';
 import { ScheduleModule } from '@nestjs/schedule';
+import { AuthModule } from './auth/auth.module';
+import { WebModule } from './web/web.module';
 
 @Module({
   imports: [
@@ -31,6 +33,8 @@ import { ScheduleModule } from '@nestjs/schedule';
     }),
     SchemasModule,
     ScheduleModule.forRoot(),
+    AuthModule,
+    WebModule,
   ],
   controllers: [],
   providers: [AppWorker],

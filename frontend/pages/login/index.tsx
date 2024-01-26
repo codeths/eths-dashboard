@@ -30,6 +30,8 @@ export default function Login() {
           startDecorator={<img src={GoogleLogo} alt="logo" width="20px" />}
           variant="outlined"
           size="lg"
+          component="a"
+          href="/api/auth/google"
         >
           Continue with Google
         </Button>

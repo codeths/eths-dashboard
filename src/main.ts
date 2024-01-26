@@ -3,18 +3,42 @@ import { AppModule } from './app.module';
 import { Logger, VersioningType } from '@nestjs/common';
 import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
 import * as cookieParser from 'cookie-parser';
+import * as session from 'express-session';
+import * as mongoStore from 'connect-mongodb-session';
+import * as passport from 'passport';
 import { ConfigService } from '@nestjs/config';
+import { NestExpressApplication } from '@nestjs/platform-express';
 
 async function bootstrap() {
   const logger = new Logger('APP');
-  const app = await NestFactory.create(AppModule);
+  const app = await NestFactory.create<NestExpressApplication>(AppModule);
+  const config = app.get<ConfigService>(ConfigService);
+  const MongoDBStore = mongoStore(session);
+  const store = new MongoDBStore({
+    uri: config.getOrThrow('MONGO_URL'),
+    collection: 'sessions',
+  });
+  app.set('trust proxy', 1);
+  app.use(
+    session({
+      secret: config.getOrThrow('SESSION_SECRET'),
+      cookie: {
+        maxAge: 1000 * 60 * 60 * 24 * 7, // 1 week
+        httpOnly: true,
+        secure: config.get('NODE_ENV') === 'production',
+      },
+      store,
+      resave: false,
+      saveUninitialized: false,
+    }),
+  );
+  app.use(passport.session());
   app.use(cookieParser());
   app.setGlobalPrefix('api');
   app.enableVersioning({
     type: VersioningType.URI,
   });
 
-  const config = app.get<ConfigService>(ConfigService);
   if (config.get('NODE_ENV') !== 'production') {
     const config = new DocumentBuilder()
       .setTitle('Dashboard API')
