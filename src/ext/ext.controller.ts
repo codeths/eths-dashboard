@@ -5,6 +5,7 @@ import {
   InternalServerErrorException,
   Ip,
   Logger,
+  Options,
   Post,
   Put,
   Req,
@@ -49,6 +50,9 @@ export class ExtController {
     private readonly firebaseService: FirebaseService,
   ) {}
   private readonly logger = new Logger(ExtController.name);
+
+  @Options(['register', 'ping'])
+  preflights() {}
 
   @ApiOperation({
     description:
