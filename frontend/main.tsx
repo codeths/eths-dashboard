@@ -8,7 +8,7 @@ import {
   useNavigate,
 } from 'react-router-dom';
 import Typography from '@mui/joy/Typography';
-import { CssVarsProvider } from '@mui/joy/styles';
+import { CssVarsProvider, useTheme } from '@mui/joy/styles';
 
 import '@fontsource/inter';
 import Login from './pages/login';
@@ -22,10 +22,22 @@ function App() {
   return (
     <AuthProvider authenticated={authenticated} user={user}>
       <CssVarsProvider defaultMode="system">
+        <BackgroundManager />
         <Outlet />
       </CssVarsProvider>
     </AuthProvider>
   );
+}
+function BackgroundManager() {
+  const theme = useTheme();
+
+  useEffect(() => {
+    document.body.setAttribute(
+      'style',
+      `background-color: ${theme.palette.background.body};`,
+    );
+  }, [theme]);
+  return <></>;
 }
 function ProtectedRoute() {
   const goto = useNavigate();
