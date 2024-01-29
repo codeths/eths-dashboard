@@ -19,6 +19,7 @@ import { IDeviceStatus } from 'common/ext/oneToOneStatus.dto';
 import {
   ApiBadGatewayResponse,
   ApiCookieAuth,
+  ApiExcludeEndpoint,
   ApiExtraModels,
   ApiGatewayTimeoutResponse,
   ApiInternalServerErrorResponse,
@@ -51,6 +52,7 @@ export class ExtController {
   ) {}
   private readonly logger = new Logger(ExtController.name);
 
+  @ApiExcludeEndpoint()
   @Options(['register', 'ping'])
   preflights() {}
 

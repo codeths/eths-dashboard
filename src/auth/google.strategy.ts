@@ -6,6 +6,7 @@ import { OAuthLogger } from './logger.provider';
 import { InjectModel } from '@nestjs/mongoose';
 import { WebUser } from 'src/schemas/WebUser.schema';
 import { Model } from 'mongoose';
+import { SessionData } from 'src/web/types/request';
 
 @Injectable()
 export class GoogleStrategy extends PassportStrategy(Strategy) {
@@ -36,7 +37,7 @@ export class GoogleStrategy extends PassportStrategy(Strategy) {
       emails: { value: string; verified: boolean }[];
       photos: { value: string }[];
     },
-    done: (err: any, user: any) => void,
+    done: (err: any, user: SessionData) => void,
   ) {
     if (profile.emails?.length === 0)
       throw new BadRequestException('No email provided');

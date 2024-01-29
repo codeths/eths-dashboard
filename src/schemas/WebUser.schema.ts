@@ -14,6 +14,10 @@ export class WebUser {
 
   @Prop()
   photo?: string;
+
+  static toAPIResponse(user: WebUserDocument) {
+    return user.toObject({ versionKey: false });
+  }
 }
 
 export const WebUserSchema = SchemaFactory.createForClass(WebUser);
