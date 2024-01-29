@@ -11,8 +11,6 @@ export class AuthController {
   @UseGuards(GoogleAuthGuard)
   @Get('google/cbk')
   callback(@Req() req: Request, @Res() res: Response) {
-    console.log(new Date(), 'user:', req.user);
-    console.log('session:', req.session);
     res.redirect('/');
   }
 }

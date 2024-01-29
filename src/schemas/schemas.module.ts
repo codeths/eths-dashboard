@@ -11,6 +11,7 @@ import {
   RegistrationEventV1Schema,
 } from './Event.schema';
 import { ExtUser, ExtUserSchema } from './ExtUser.schema';
+import { WebUser, WebUserSchema } from './WebUser.schema';
 
 const schemas = MongooseModule.forFeature([
   { name: Device.name, schema: DeviceSchema },
@@ -30,6 +31,7 @@ const schemas = MongooseModule.forFeature([
     ],
   },
   { name: ExtUser.name, schema: ExtUserSchema },
+  { name: WebUser.name, schema: WebUserSchema },
 ]);
 
 @Module({
