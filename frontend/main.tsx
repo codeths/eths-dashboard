@@ -14,15 +14,13 @@ import '@fontsource/inter';
 import Login from './pages/login';
 import { AuthProvider, AuthContext } from './AuthProvider';
 
-type AppLoaderData = {
-  authenticated: boolean;
-};
+import { AppLoaderData } from './types/loaders';
 
 function App() {
-  const { authenticated } = useLoaderData() as AppLoaderData;
+  const { authenticated, user } = useLoaderData() as AppLoaderData;
 
   return (
-    <AuthProvider authenticated={authenticated}>
+    <AuthProvider authenticated={authenticated} user={user}>
       <CssVarsProvider defaultMode="system">
         <Outlet />
       </CssVarsProvider>
@@ -43,8 +41,15 @@ const router = createBrowserRouter([
   {
     path: '/',
     element: <App />,
-    loader: (): AppLoaderData => {
-      return { authenticated: false };
+    loader: async ({ request }): Promise<AppLoaderData> => {
+      const req = await fetch('/api/v1/web/me', { signal: request.signal });
+
+      if (req.status === 200) {
+        const { user } = await req.json();
+        return { authenticated: true, user };
+      } else {
+        return { authenticated: false, user: null };
+      }
     },
     children: [
       {
