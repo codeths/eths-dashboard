@@ -1,10 +1,18 @@
-import React from 'react';
+import React, { useContext, useEffect } from 'react';
 import Typography from '@mui/joy/Typography';
 import Grid from '@mui/joy/Grid';
 import Button from '@mui/joy/Button';
 import GoogleLogo from '../../static/google.svg';
+import { useNavigate } from 'react-router-dom';
+import { AuthContext } from '../../AuthProvider';
 
 export default function Login() {
+  const goto = useNavigate();
+  const ctx = useContext(AuthContext);
+
+  useEffect(() => {
+    if (ctx?.authenticated) goto('/');
+  }, [ctx]);
   return (
     <Grid
       container

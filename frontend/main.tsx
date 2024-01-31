@@ -8,10 +8,13 @@ import {
   useNavigate,
 } from 'react-router-dom';
 import Typography from '@mui/joy/Typography';
-import { CssVarsProvider, useTheme } from '@mui/joy/styles';
+import { CssVarsProvider } from '@mui/joy/styles';
+import CssBaseline from '@mui/joy/CssBaseline';
+import GlobalStyles from '@mui/joy/GlobalStyles';
 
 import '@fontsource/inter';
 import Login from './pages/login';
+import Layout from './pages/layout';
 import { AuthProvider, AuthContext } from './AuthProvider';
 
 import { AppLoaderData } from './types/loaders';
@@ -22,23 +25,24 @@ function App() {
   return (
     <AuthProvider authenticated={authenticated} user={user}>
       <CssVarsProvider defaultMode="system">
-        <BackgroundManager />
+        <CssBaseline />
+        <GlobalStyles
+          styles={{
+            '& .lucide': {
+              color: 'var(--Icon-color)',
+              margin: 'var(--Icon-margin)',
+              fontSize: 'var(--Icon-fontSize, 20px)',
+              width: '1em',
+              height: '1em',
+            },
+          }}
+        />
         <Outlet />
       </CssVarsProvider>
     </AuthProvider>
   );
 }
-function BackgroundManager() {
-  const theme = useTheme();
 
-  useEffect(() => {
-    document.body.setAttribute(
-      'style',
-      `background-color: ${theme.palette.background.body};`,
-    );
-  }, [theme]);
-  return <></>;
-}
 function ProtectedRoute() {
   const goto = useNavigate();
   const ctx = useContext(AuthContext);
@@ -46,7 +50,7 @@ function ProtectedRoute() {
   useEffect(() => {
     if (!ctx?.authenticated) goto('/login');
   }, [ctx]);
-  return <Outlet />;
+  return <></>;
 }
 
 const router = createBrowserRouter([
@@ -69,11 +73,16 @@ const router = createBrowserRouter([
         element: <Login />,
       },
       {
-        element: <ProtectedRoute />,
+        element: (
+          <>
+            <ProtectedRoute />
+            <Layout />
+          </>
+        ),
         children: [
           {
             index: true,
-            element: <Typography level="h1">Hello World!</Typography>,
+            element: <Typography level="h1">Dashboard</Typography>,
           },
           {
             path: '*',
