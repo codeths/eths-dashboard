@@ -1,5 +1,9 @@
 import { PassportStrategy } from '@nestjs/passport';
-import { Injectable, BadRequestException } from '@nestjs/common';
+import {
+  Injectable,
+  BadRequestException,
+  ForbiddenException,
+} from '@nestjs/common';
 import { Strategy } from 'passport-google-oauth20';
 import { ConfigService } from '@nestjs/config';
 import { OAuthLogger } from './logger.provider';
@@ -7,6 +11,7 @@ import { InjectModel } from '@nestjs/mongoose';
 import { WebUser } from 'src/schemas/WebUser.schema';
 import { Model } from 'mongoose';
 import { SessionData } from 'src/web/types/request';
+import { Request } from 'express';
 
 @Injectable()
 export class GoogleStrategy extends PassportStrategy(Strategy) {
@@ -24,7 +29,20 @@ export class GoogleStrategy extends PassportStrategy(Strategy) {
 
     logger.log(`OAuth callback url: ${callbackURL}`);
 
-    super({ callbackURL, clientID, clientSecret, scope, session: true });
+    super({
+      callbackURL,
+      clientID,
+      clientSecret,
+      scope,
+      session: true,
+    });
+  }
+
+  authenticate(req: Request, options: any): any {
+    const authDomain = this.configService.getOrThrow('AUTH_DOMAIN');
+    const newOptions = { hd: authDomain, ...options };
+
+    super.authenticate(req, newOptions);
   }
 
   async validate(
@@ -45,6 +63,11 @@ export class GoogleStrategy extends PassportStrategy(Strategy) {
 
     const { id, displayName, emails, photos } = profile;
     const [{ value: email }] = emails;
+    const authDomain = this.configService.getOrThrow('AUTH_DOMAIN');
+
+    if (!email.endsWith(`@${authDomain}`))
+      throw new ForbiddenException(`${email} is not a member of ${authDomain}`);
+
     this.logger.verbose(`LOGIN: ${email}`);
 
     const user = await this.userModel.findOneAndUpdate(
