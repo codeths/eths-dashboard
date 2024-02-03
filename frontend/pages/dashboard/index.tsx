@@ -26,9 +26,6 @@ export default function Dashboard() {
       clearInterval(id);
     };
   }, []);
-  useEffect(() => {
-    console.log('data changed', data);
-  }, [data]);
   return (
     <Box>
       <Typography level="h2">Dashboard</Typography>
