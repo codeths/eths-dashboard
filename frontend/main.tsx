@@ -11,10 +11,12 @@ import Typography from '@mui/joy/Typography';
 import { CssVarsProvider } from '@mui/joy/styles';
 import CssBaseline from '@mui/joy/CssBaseline';
 import GlobalStyles from '@mui/joy/GlobalStyles';
+import { ApiCall } from './utils';
 
 import '@fontsource/inter';
 import Login from './pages/login';
 import Layout from './pages/layout';
+import Dashboard, { loadDashboard } from './pages/dashboard';
 import { AuthProvider, AuthContext } from './AuthProvider';
 
 import { AppLoaderData } from './types/loaders';
@@ -57,8 +59,9 @@ const router = createBrowserRouter([
   {
     path: '/',
     element: <App />,
+    shouldRevalidate: () => false,
     loader: async ({ request }): Promise<AppLoaderData> => {
-      const req = await fetch('/api/v1/web/me', { signal: request.signal });
+      const req = await ApiCall('/me', { signal: request.signal });
 
       if (req.status === 200) {
         const { user } = await req.json();
@@ -82,7 +85,8 @@ const router = createBrowserRouter([
         children: [
           {
             index: true,
-            element: <Typography level="h1">Dashboard</Typography>,
+            element: <Dashboard />,
+            loader: loadDashboard,
           },
           {
             path: '*',
