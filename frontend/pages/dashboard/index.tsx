@@ -52,7 +52,15 @@ export default function Dashboard() {
                 }
               >
                 {(onlineCount: number) => (
-                  <Typography level="h2" startDecorator={<RadioTower />}>
+                  <Typography
+                    level="h2"
+                    startDecorator={
+                      <Typography level="inherit" color="neutral">
+                        <RadioTower />
+                      </Typography>
+                    }
+                    color={onlineCount > 0 ? 'success' : undefined}
+                  >
                     {onlineCount.toLocaleString()}
                   </Typography>
                 )}
