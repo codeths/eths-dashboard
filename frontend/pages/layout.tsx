@@ -20,6 +20,7 @@ import Typography from '@mui/joy/Typography';
 import Divider from '@mui/joy/Divider';
 import Avatar from '@mui/joy/Avatar';
 import { AuthContext } from '../AuthProvider';
+import { NavLink } from 'react-router-dom';
 
 export default function Layout() {
   const [open, setOpen] = useState(false);
@@ -113,9 +114,9 @@ export default function Layout() {
               '--ListItem-radius': (theme) => theme.vars.radius.sm,
             }}
           >
-            <Link name="Home" icon={<Home />} />
-            <Link name="Loaners" icon={<Laptop />} />
-            <Link name="Users" icon={<Users />} />
+            <Link name="Home" to="/" icon={<Home />} />
+            <Link name="Loaners" to="/loaners" icon={<Laptop />} />
+            <Link name="Users" to="/users" icon={<Users />} />
           </List>
         </Box>
         <Box
@@ -134,9 +135,9 @@ export default function Layout() {
             }}
           >
             {authCtx?.user?.roles?.includes('Admin') && (
-              <Link name="Manage Access" icon={<UserCog />} />
+              <Link name="Manage Access" to="manage" icon={<UserCog />} />
             )}
-            <Link name="Settings" icon={<Settings />} />
+            <Link name="Settings" to="settings" icon={<Settings />} />
           </List>
         </Box>
         <Divider />
@@ -173,15 +174,27 @@ export default function Layout() {
   );
 }
 
-function Link({ name, icon }: { name: string; icon: ReactElement }) {
+function Link({
+  name,
+  icon,
+  to,
+}: {
+  name: string;
+  icon: ReactElement;
+  to: string;
+}) {
   return (
-    <ListItem>
-      <ListItemButton>
-        {icon}
-        <ListItemContent>
-          <Typography level="title-sm">{name}</Typography>
-        </ListItemContent>
-      </ListItemButton>
-    </ListItem>
+    <NavLink to={to} style={{ textDecoration: 'none' }}>
+      {({ isActive }) => (
+        <ListItem>
+          <ListItemButton selected={isActive}>
+            {icon}
+            <ListItemContent>
+              <Typography level="title-sm">{name}</Typography>
+            </ListItemContent>
+          </ListItemButton>
+        </ListItem>
+      )}
+    </NavLink>
   );
 }
