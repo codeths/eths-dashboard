@@ -4,13 +4,15 @@ import { AuthenticatedRequest } from './types/request';
 import { WebUser } from 'src/schemas/WebUser.schema';
 import { ApiTags } from '@nestjs/swagger';
 import { DeviceService } from './device.service';
+import { Roles } from './roles.decorator';
+import { RolesGuard } from './roles.guard';
 
 @Controller({
   path: 'web',
   version: '1',
 })
 @ApiTags('Web Client API')
-@UseGuards(AuthGuard)
+@UseGuards(AuthGuard, RolesGuard)
 export class WebController {
   constructor(private readonly deviceService: DeviceService) {}
 
@@ -21,6 +23,7 @@ export class WebController {
     };
   }
 
+  @Roles(['View'])
   @Get('devices/online')
   async devicesOnline() {
     return await this.deviceService.getDevicesOnline();
