@@ -1,6 +1,14 @@
 import React, { ReactElement, useContext, useState } from 'react';
 import { Outlet } from 'react-router-dom';
-import { Menu, Home, Laptop, Users, Goal } from 'lucide-react';
+import {
+  Menu,
+  Home,
+  Laptop,
+  Users,
+  Goal,
+  Settings,
+  UserCog,
+} from 'lucide-react';
 import Box from '@mui/joy/Box';
 import Sheet from '@mui/joy/Sheet';
 import IconButton from '@mui/joy/IconButton';
@@ -107,6 +115,27 @@ export default function Layout() {
             <Link name="Home" icon={<Home />} />
             <Link name="Loaners" icon={<Laptop />} />
             <Link name="Users" icon={<Users />} />
+          </List>
+        </Box>
+        <Box
+          sx={{
+            overflow: 'hidden auto',
+            display: 'flex',
+            flexDirection: 'column',
+          }}
+        >
+          <List
+            size="sm"
+            sx={{
+              gap: 1,
+              mt: 4,
+              '--ListItem-radius': (theme) => theme.vars.radius.sm,
+            }}
+          >
+            {authCtx?.user?.roles?.includes('Admin') && (
+              <Link name="Manage Access" icon={<UserCog />} />
+            )}
+            <Link name="Settings" icon={<Settings />} />
           </List>
         </Box>
         <Divider />
