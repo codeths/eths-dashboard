@@ -42,6 +42,7 @@ export default function Layout() {
           width: '100vw',
           height: headerHeight,
           display: { xs: 'flex', md: 'none' },
+          zIndex: 9000,
         }}
       >
         <IconButton variant="outlined" onClick={() => setOpen(true)}>
