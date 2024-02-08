@@ -1,8 +1,8 @@
 import {
-  BadGatewayException,
   CanActivate,
   ExecutionContext,
   Injectable,
+  UnauthorizedException,
 } from '@nestjs/common';
 import { AnyRequest, AuthenticatedRequest } from './types/request';
 import { InjectModel } from '@nestjs/mongoose';
@@ -21,13 +21,16 @@ export class AuthGuard implements CanActivate {
       .getRequest<AnyRequest | AuthenticatedRequest>();
     const userID = req.user?.id;
 
-    if (!userID) return false;
+    if (!userID) throw new UnauthorizedException();
 
     delete req.user; // loaded by passport; only contains ObjectID
 
     const user = await this.userModel.findById(userID);
 
-    if (!user) throw new BadGatewayException('Failed to fetch user'); // shouldn't ever happen
+    if (!user) {
+      req.session.destroy(() => {});
+      throw new UnauthorizedException();
+    }
 
     req.user = user;
 

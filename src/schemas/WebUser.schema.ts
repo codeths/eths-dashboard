@@ -1,7 +1,7 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { HydratedDocument } from 'mongoose';
 
-enum UserRoles {
+export enum UserRoles {
   None = 0b00,
   View = 0b01,
   Admin = 0b10,
@@ -40,6 +40,10 @@ export class WebUser {
 
   static hasRole(user: { roles: number }, role: UserRoleName) {
     return (user.roles & UserRoles[role]) === UserRoles[role];
+  }
+
+  static rolesToBitfield(roles: UserRoleName[]) {
+    return roles.reduce((acc, role) => acc | UserRoles[role], 0);
   }
 }
 
