@@ -21,6 +21,7 @@ import Divider from '@mui/joy/Divider';
 import Avatar from '@mui/joy/Avatar';
 import { AuthContext } from '../AuthProvider';
 import { NavLink } from 'react-router-dom';
+import { ToastProvider } from '../ToastProvider';
 
 export default function Layout() {
   const [open, setOpen] = useState(false);
@@ -168,7 +169,9 @@ export default function Layout() {
           },
         })}
       >
-        <Outlet />
+        <ToastProvider>
+          <Outlet />
+        </ToastProvider>
       </Box>
     </Box>
   );
