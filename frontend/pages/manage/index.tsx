@@ -4,10 +4,10 @@ import {
   Await,
   LoaderFunction,
   defer,
+  json,
   useFetcher,
   useLoaderData,
   useNavigate,
-  useRevalidator,
 } from 'react-router-dom';
 import Typography from '@mui/joy/Typography';
 import { AuthContext } from '../../AuthProvider';
@@ -30,12 +30,17 @@ import DialogContent from '@mui/joy/DialogContent';
 import Divider from '@mui/joy/Divider';
 import { AlertTriangle, ShieldCheck, Trash2 } from 'lucide-react';
 import { ApiCall } from '../../utils';
+import { ToastContext } from '../..//ToastProvider';
 
 import { UserRoleName } from 'src/schemas/WebUser.schema';
 import { WebUser } from '../../types/WebUser';
 
 interface ManagementLoaderData {
   users: WebUser[];
+}
+interface ActionResponse {
+  error: boolean;
+  text: string;
 }
 
 function User({
@@ -161,8 +166,9 @@ export default function Management() {
   const [userData, setUserData] = useState({ name: '', id: '' });
   const goto = useNavigate();
   const ctx = useContext(AuthContext);
+  const toastCtx = useContext(ToastContext);
   const data = useLoaderData() as ManagementLoaderData;
-  const fetcher = useFetcher();
+  const fetcher = useFetcher<ActionResponse>();
 
   const updateRoles = (userID: string, roles: UserRoleName[]) => {
     fetcher.submit(
@@ -175,6 +181,12 @@ export default function Management() {
     setUserData({ name, id });
   };
 
+  useEffect(() => {
+    if (fetcher.data) {
+      const { error, text } = fetcher.data;
+      toastCtx?.createToast(text, error ? 'FAILURE' : 'SUCCESS');
+    }
+  }, [fetcher.data]);
   useEffect(() => {
     if (ctx && !ctx.user?.roles.includes('Admin')) goto('/');
   }, [ctx]);
@@ -265,7 +277,7 @@ export default function Management() {
                       photo={photo}
                       deleteUser={openPrompt}
                       updateRoles={updateRoles}
-                      disabled={fetcher.state == 'submitting'}
+                      disabled={fetcher.state === 'submitting'}
                     />
                   ))
                 }
@@ -286,25 +298,37 @@ export const loadManagement: LoaderFunction = ({ request }) => {
 };
 export const managementAction: ActionFunction = async ({ request }) => {
   const formData = await request.formData();
+  let error = false;
+  let text = '';
 
   const userID = formData.get('userID');
   switch (request.method) {
     case 'DELETE':
       try {
-        await ApiCall(`/access/${userID}`, { method: 'DELETE' });
-      } catch (error) {}
+        const res = await ApiCall(`/access/${userID}`, { method: 'DELETE' });
+        if (!res.ok) throw new Error();
+        text = 'Successfully deleted user';
+      } catch (err) {
+        error = true;
+        text = 'Failed to delete user';
+      }
       break;
     case 'PATCH':
       const roles = JSON.parse(formData.get('roles') as string);
       try {
-        await ApiCall(`/access/${userID}`, {
+        const res = await ApiCall(`/access/${userID}`, {
           method: 'PATCH',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ roles }),
         });
-      } catch (error) {}
+        if (!res.ok) throw new Error();
+        text = 'Successfully updated roles';
+      } catch (err) {
+        error = true;
+        text = 'Failed to update roles';
+      }
       break;
   }
 
-  return { ok: true };
+  return json<ActionResponse>({ error, text }, { status: 200 });
 };
