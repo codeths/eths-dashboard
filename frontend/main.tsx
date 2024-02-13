@@ -17,6 +17,7 @@ import '@fontsource/inter';
 import Login from './pages/login';
 import Layout from './pages/layout';
 import Dashboard, { loadDashboard } from './pages/dashboard';
+import Management, { loadManagement, managementAction } from './pages/manage';
 import { AuthProvider, AuthContext } from './AuthProvider';
 
 import { AppLoaderData } from './types/loaders';
@@ -87,6 +88,12 @@ const router = createBrowserRouter([
             index: true,
             element: <Dashboard />,
             loader: loadDashboard,
+          },
+          {
+            path: 'manage',
+            element: <Management />,
+            loader: loadManagement,
+            action: managementAction,
           },
           {
             path: '*',
