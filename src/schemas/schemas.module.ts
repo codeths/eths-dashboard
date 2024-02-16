@@ -5,6 +5,8 @@ import { FirebaseToken, FirebaseTokenSchema } from './FirebaseToken.schema';
 import {
   Event,
   EventSchema,
+  OneToOneStatusUpdateV1,
+  OneToOneStatusUpdateV1Schema,
   PingEventV1,
   PingEventV1Schema,
   RegistrationEventV1,
@@ -27,6 +29,10 @@ const schemas = MongooseModule.forFeature([
       {
         name: RegistrationEventV1.name,
         schema: RegistrationEventV1Schema,
+      },
+      {
+        name: OneToOneStatusUpdateV1.name,
+        schema: OneToOneStatusUpdateV1Schema,
       },
     ],
   },

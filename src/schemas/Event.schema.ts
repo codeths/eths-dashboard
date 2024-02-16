@@ -3,6 +3,7 @@ import mongoose, { HydratedDocument } from 'mongoose';
 import { Device } from './Device.schema';
 import { ExtUser } from './ExtUser.schema';
 import { FirebaseToken } from './FirebaseToken.schema';
+import { IDeviceStatus } from 'common/ext/oneToOneStatus.dto';
 
 @Schema({
   timeseries: {
@@ -67,3 +68,34 @@ export class RegistrationEventV1 extends NetworkEvent {
 export const RegistrationEventV1Schema =
   SchemaFactory.createForClass(RegistrationEventV1);
 export type RegistrationEventV1Type = HydratedDocument<RegistrationEventV1>;
+
+@Schema({ _id: false })
+class DeviceMetadata {
+  @Prop({
+    required: true,
+    type: mongoose.Schema.Types.ObjectId,
+    ref: Device.name,
+  })
+  device: string;
+
+  @Prop({ required: true, type: String, index: { sparse: true } })
+  loanerStatus: IDeviceStatus['loanerStatus'];
+}
+const DeviceMetadataSchema = SchemaFactory.createForClass(DeviceMetadata);
+
+@Schema()
+export class OneToOneStatusUpdateV1 extends Event {
+  @Prop({ required: true, type: DeviceMetadataSchema })
+  metadata: DeviceMetadata;
+
+  @Prop({ required: true, type: String })
+  deviceStatus: IDeviceStatus['deviceStatus'];
+
+  @Prop()
+  startDate?: Date;
+}
+export const OneToOneStatusUpdateV1Schema = SchemaFactory.createForClass(
+  OneToOneStatusUpdateV1,
+);
+export type OneToOneStatusUpdateV1Type =
+  HydratedDocument<OneToOneStatusUpdateV1>;
