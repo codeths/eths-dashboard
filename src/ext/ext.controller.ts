@@ -38,6 +38,7 @@ import { AuthCookieLifespan, AuthCookieName } from './ext.constants';
 import { AuthGuard } from './auth.guard';
 import { DeviceAuthenticatedRequest } from './types/request';
 import { FirebaseService } from 'src/firebase/firebase.service';
+import { OneToOneService } from 'src/integrations/OneToOne.service';
 
 @Controller({
   path: 'ext',
@@ -49,6 +50,7 @@ export class ExtController {
   constructor(
     private readonly extService: ExtService,
     private readonly firebaseService: FirebaseService,
+    private readonly oneToOneService: OneToOneService,
   ) {}
   private readonly logger = new Logger(ExtController.name);
 
@@ -92,7 +94,7 @@ export class ExtController {
     //  -----  Fetch Status  -----
 
     const startTime = Date.now();
-    const { data } = await this.extService.getResponseFromOneToOne(serial);
+    const { data } = await this.oneToOneService.getResponseFromOneToOne(serial);
     const duration = Date.now() - startTime;
     this.logger.debug(`Proxied request took ${duration}ms`);
     res.set('Server-Timing', `proxy;dur=${duration}`);

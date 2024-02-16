@@ -16,6 +16,7 @@ import { FirebaseToken } from 'src/schemas/FirebaseToken.schema';
 import { FirebaseService } from 'src/firebase/firebase.service';
 import { PingEventV1, RegistrationEventV1 } from 'src/schemas/Event.schema';
 import { ExtUser } from 'src/schemas/ExtUser.schema';
+import { OneToOneService } from 'src/integrations/OneToOne.service';
 
 describe('ExtController', () => {
   let controller: ExtController;
@@ -26,6 +27,7 @@ describe('ExtController', () => {
       imports: [JwtModule.register({ secret: 'abc' })],
       providers: [
         ExtService,
+        OneToOneService,
         {
           provide: ConfigService,
           useValue: {
@@ -77,7 +79,8 @@ describe('ExtController', () => {
 
     controller = module.get<ExtController>(ExtController);
     const service = module.get<ExtService>(ExtService);
-    mockedExtResponse = jest.spyOn(service, 'getResponseFromOneToOne');
+    const oneToOneService = module.get<OneToOneService>(OneToOneService);
+    mockedExtResponse = jest.spyOn(oneToOneService, 'getResponseFromOneToOne');
   });
 
   it('should be defined', () => {

@@ -1,7 +1,7 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { ServeStaticModule } from '@nestjs/serve-static';
-import { join, sep } from 'path';
+import { join } from 'path';
 import { ExtModule } from './ext/ext.module';
 import { FirebaseModule } from './firebase/firebase.module';
 import { MongooseModule } from '@nestjs/mongoose';
@@ -10,6 +10,7 @@ import { SchemasModule } from './schemas/schemas.module';
 import { ScheduleModule } from '@nestjs/schedule';
 import { AuthModule } from './auth/auth.module';
 import { WebModule } from './web/web.module';
+import { IntegrationsModule } from './integrations/integrations.module';
 
 @Module({
   imports: [
@@ -35,6 +36,7 @@ import { WebModule } from './web/web.module';
     ScheduleModule.forRoot(),
     AuthModule,
     WebModule,
+    IntegrationsModule,
   ],
   controllers: [],
   providers: [AppWorker],

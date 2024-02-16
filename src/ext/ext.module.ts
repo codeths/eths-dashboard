@@ -7,6 +7,7 @@ import { SchemasModule } from 'src/schemas/schemas.module';
 import { FirebaseModule } from 'src/firebase/firebase.module';
 import { AuthTokenLifespanDays } from './ext.constants';
 import { CorsMiddleware } from './cors.middleware';
+import { IntegrationsModule } from 'src/integrations/integrations.module';
 
 @Module({
   imports: [
@@ -22,6 +23,7 @@ import { CorsMiddleware } from './cors.middleware';
     }),
     SchemasModule,
     FirebaseModule,
+    IntegrationsModule,
   ],
   providers: [ExtService],
   controllers: [ExtController],

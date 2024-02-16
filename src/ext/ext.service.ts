@@ -1,8 +1,5 @@
-import { GatewayTimeoutException, Injectable } from '@nestjs/common';
-import { ConfigService } from '@nestjs/config';
+import { Injectable } from '@nestjs/common';
 import { JwtService, JwtSignOptions } from '@nestjs/jwt';
-import axios from 'axios';
-import { OneToOneStatus } from 'common/ext/oneToOneStatus.dto';
 import { AuthCookieAlgorithm } from './ext.constants';
 import { AuthTokenV1 } from 'common/ext/authToken.dto';
 import { InjectModel } from '@nestjs/mongoose';
@@ -15,7 +12,6 @@ import { ExtUser } from 'src/schemas/ExtUser.schema';
 @Injectable()
 export class ExtService {
   constructor(
-    private readonly configService: ConfigService,
     private readonly jwtService: JwtService,
     @InjectModel(Device.name) private readonly deviceModel: Model<Device>,
     @InjectModel(FirebaseToken.name)
@@ -26,22 +22,6 @@ export class ExtService {
     @InjectModel(RegistrationEventV1.name)
     private readonly registrationEventModel: Model<RegistrationEventV1>,
   ) {}
-
-  async getResponseFromOneToOne(deviceSerial: string) {
-    const key = this.configService.getOrThrow<string>('ONETOONE_KEY');
-    const { data } = await axios
-      .get<OneToOneStatus>(
-        `https://customapp.eths.k12.il.us/api/studentapplication/getonetoonebyserial/${deviceSerial}`,
-        { headers: { key }, timeout: 5000 },
-      )
-      .catch(() => {
-        throw new GatewayTimeoutException(
-          'Failed to communicate with OneToOne',
-        );
-      });
-
-    return { data };
-  }
 
   async generateToken(deviceSerial: string, alertTokenId: string) {
     const payload: AuthTokenV1 = {
