@@ -133,6 +133,8 @@ export class ExtController {
       ipAddress,
     );
 
+    await this.oneToOneService.generateStatusEvent(data.object, deviceDoc.id);
+
     //  -----  Init Firebase  -----
 
     try {

@@ -3,6 +3,8 @@ import { OneToOneService } from './OneToOne.service';
 import { ConfigService } from '@nestjs/config';
 import axios, { AxiosError } from 'axios';
 import { GatewayTimeoutException } from '@nestjs/common';
+import { getModelToken } from '@nestjs/mongoose';
+import { OneToOneStatusUpdateV1 } from 'src/schemas/Event.schema';
 
 jest.mock('axios');
 
@@ -19,6 +21,12 @@ describe('OneToOneService', () => {
             // mock API key
             getOrThrow: jest.fn(() => ''),
           },
+        },
+        {
+          provide: getModelToken(OneToOneStatusUpdateV1.name),
+          useValue: jest.fn(() => ({
+            save: jest.fn(),
+          })),
         },
       ],
     }).compile();
