@@ -43,7 +43,7 @@ export class OneToOneService {
       deviceStatus,
     };
     if (startDate) init.startDate = new Date(startDate);
-    console.log({ init });
+
     const statusEventDoc = await new this.oneToOneStatusModel(init).save();
 
     return statusEventDoc;

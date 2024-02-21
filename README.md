@@ -42,3 +42,9 @@ $ npm run test:e2e
 # test coverage
 $ npm run test:cov
 ```
+
+## Migrations
+```bash
+# create a new migration
+$ npm run migrations:new -- NameOfMyMigration
+```
