@@ -6,6 +6,7 @@ import { FirebaseToken } from './schemas/FirebaseToken.schema';
 import { DeviceDocument } from './schemas/Device.schema';
 import { FirebaseService } from './firebase/firebase.service';
 import { AuthTokenLifespanDays } from './ext/ext.constants';
+import { MigrationsService } from './migrations.service';
 
 @Injectable()
 export class AppWorker implements OnApplicationBootstrap {
@@ -13,10 +14,13 @@ export class AppWorker implements OnApplicationBootstrap {
     @InjectModel(FirebaseToken.name)
     private readonly firebaseTokenModel: Model<FirebaseToken>,
     private readonly firebaseService: FirebaseService,
+    private readonly migrationsService: MigrationsService,
   ) {}
   private readonly logger = new Logger(AppWorker.name);
 
-  onApplicationBootstrap() {}
+  async onApplicationBootstrap() {
+    await this.migrationsService.checkMigrations();
+  }
 
   @Cron(CronExpression.EVERY_DAY_AT_MIDNIGHT, { name: 'firebase' })
   async removeOldFirebaseTokens() {

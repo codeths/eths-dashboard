@@ -11,6 +11,7 @@ import { ScheduleModule } from '@nestjs/schedule';
 import { AuthModule } from './auth/auth.module';
 import { WebModule } from './web/web.module';
 import { IntegrationsModule } from './integrations/integrations.module';
+import { MigrationsService } from './migrations.service';
 
 @Module({
   imports: [
@@ -39,6 +40,6 @@ import { IntegrationsModule } from './integrations/integrations.module';
     IntegrationsModule,
   ],
   controllers: [],
-  providers: [AppWorker],
+  providers: [AppWorker, MigrationsService],
 })
 export class AppModule {}
