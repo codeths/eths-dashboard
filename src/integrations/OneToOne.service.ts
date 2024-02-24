@@ -15,12 +15,15 @@ export class OneToOneService {
     private readonly oneToOneStatusModel: Model<OneToOneStatusUpdateV1>,
   ) {}
 
-  async getResponseFromOneToOne(deviceSerial: string) {
+  async getResponseFromOneToOne(
+    deviceSerial: string,
+    { timeout }: { timeout: number | undefined } = { timeout: 5000 },
+  ) {
     const key = this.configService.getOrThrow<string>('ONETOONE_KEY');
     const { data } = await axios
       .get<OneToOneStatus>(
         `https://customapp.eths.k12.il.us/api/studentapplication/getonetoonebyserial/${deviceSerial}`,
-        { headers: { key }, timeout: 5000 },
+        { headers: { key }, timeout },
       )
       .catch(() => {
         throw new GatewayTimeoutException(
