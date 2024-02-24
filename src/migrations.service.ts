@@ -1,20 +1,33 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
+import { ModuleRef } from '@nestjs/core';
+import { InjectConnection } from '@nestjs/mongoose';
+import { Connection } from 'mongoose';
 import { dirname, join } from 'path';
-import { Umzug, memoryStorage } from 'umzug';
+import { MigrationFn, MongoDBStorage, Umzug } from 'umzug';
+
+interface MigrationContext {
+  moduleRef: ModuleRef;
+  mongoose: Connection;
+}
+export type MigrationAction = MigrationFn<MigrationContext>;
 
 @Injectable()
 export class MigrationsService {
-  constructor(private readonly configService: ConfigService) {}
+  constructor(
+    private readonly configService: ConfigService,
+    private moduleRef: ModuleRef,
+    @InjectConnection() private connection: Connection,
+  ) {}
   private readonly logger = new Logger(MigrationsService.name);
 
   async checkMigrations() {
-    const migrations = new Umzug({
+    const migrations = new Umzug<MigrationContext>({
       migrations: {
         glob: this.getMigrationsGlob(),
       },
-      context: {},
-      storage: memoryStorage(),
+      context: { moduleRef: this.moduleRef, mongoose: this.connection },
+      storage: new MongoDBStorage({ connection: this.connection.db }),
       logger:
         this.configService.get('NODE_ENV') === 'production'
           ? undefined
@@ -25,8 +38,16 @@ export class MigrationsService {
 
     if (pending.length !== 0) {
       this.logger.warn('Running migrations...');
-      console.log({ pending });
-      await migrations.up();
+      console.log(
+        'pending:',
+        pending.map((e) => e.name),
+      );
+      try {
+        await migrations.up();
+      } catch (error) {
+        console.error(error);
+        process.exit(1);
+      }
     }
   }
 

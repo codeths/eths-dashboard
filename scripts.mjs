@@ -2,6 +2,12 @@ import { Umzug } from 'umzug';
 
 const ARGS = process.argv;
 
+const migrationTemplate = `import type { MigrationAction } from 'src/migrations.service';
+
+export const up: MigrationAction = async ({ context }) => {};
+export const down: MigrationAction = async ({ context }) => {};
+`;
+
 switch (ARGS[2]) {
   case 'createMigration':
     if (!ARGS[3]) {
@@ -25,6 +31,7 @@ async function createMigration(name) {
     name: `${name}.ts`,
     folder: FOLDER,
     skipVerify: true,
+    content: migrationTemplate,
   });
   console.log('[createMigration]: Migration created successfully');
 }
