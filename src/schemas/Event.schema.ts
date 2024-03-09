@@ -5,6 +5,18 @@ import { ExtUser } from './ExtUser.schema';
 import { FirebaseToken } from './FirebaseToken.schema';
 import { IDeviceStatus } from 'common/ext/oneToOneStatus.dto';
 
+@Schema({ _id: false })
+class BaseMetadata {
+  @Prop({
+    required: true,
+    type: mongoose.Schema.Types.ObjectId,
+    ref: Device.name,
+    index: true,
+  })
+  device: string;
+}
+const BaseMetadataSchema = SchemaFactory.createForClass(BaseMetadata);
+
 @Schema({
   timeseries: {
     timeField: 'timestamp',
@@ -16,8 +28,8 @@ export class Event {
   @Prop({ required: true })
   timestamp: Date;
 
-  @Prop({ type: Object })
-  metadata?: Record<string, any>;
+  @Prop({ type: BaseMetadataSchema, required: true })
+  metadata: Record<string, any> & BaseMetadata;
 }
 export const EventSchema = SchemaFactory.createForClass(Event);
 
@@ -28,14 +40,7 @@ class NetworkEvent extends Event {
 }
 
 @Schema({ _id: false })
-class PingMetadata {
-  @Prop({
-    required: true,
-    type: mongoose.Schema.Types.ObjectId,
-    ref: Device.name,
-  })
-  device: string;
-
+class PingMetadata extends BaseMetadata {
   @Prop({
     required: true,
     type: mongoose.Schema.Types.ObjectId,
@@ -70,14 +75,7 @@ export const RegistrationEventV1Schema =
 export type RegistrationEventV1Type = HydratedDocument<RegistrationEventV1>;
 
 @Schema({ _id: false })
-class DeviceMetadata {
-  @Prop({
-    required: true,
-    type: mongoose.Schema.Types.ObjectId,
-    ref: Device.name,
-  })
-  device: string;
-
+class DeviceMetadata extends BaseMetadata {
   @Prop({ required: true, type: String, index: { sparse: true } })
   loanerStatus: IDeviceStatus['loanerStatus'];
 }
