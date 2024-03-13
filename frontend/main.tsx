@@ -18,6 +18,7 @@ import Login from './pages/login';
 import Layout from './pages/layout';
 import Dashboard, { loadDashboard } from './pages/dashboard';
 import Management, { loadManagement, managementAction } from './pages/manage';
+import Devices, { loadDevicesFirstPage } from './pages/devices';
 import { AuthProvider, AuthContext } from './AuthProvider';
 
 import { AppLoaderData } from './types/loaders';
@@ -94,6 +95,11 @@ const router = createBrowserRouter([
             element: <Management />,
             loader: loadManagement,
             action: managementAction,
+          },
+          {
+            path: 'devices',
+            element: <Devices />,
+            loader: loadDevicesFirstPage,
           },
           {
             path: '*',

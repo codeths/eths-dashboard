@@ -116,8 +116,12 @@ export default function Layout() {
             }}
           >
             <Link name="Home" to="/" icon={<Home />} />
-            <Link name="Loaners" to="/loaners" icon={<Laptop />} />
-            <Link name="Users" to="/users" icon={<Users />} />
+            {authCtx?.user?.roles?.includes('View') && (
+              <>
+                <Link name="Devices" to="/devices" icon={<Laptop />} />
+                <Link name="Users" to="/users" icon={<Users />} />
+              </>
+            )}
           </List>
         </Box>
         <Box
@@ -161,6 +165,8 @@ export default function Layout() {
       </Sheet>
       <Box
         sx={(theme) => ({
+          height: '100dvh',
+          overflow: 'hidden',
           p: 2,
           pt: `calc(${theme.spacing(2)} + ${headerHeight})`,
           [theme.breakpoints.up('md')]: {
