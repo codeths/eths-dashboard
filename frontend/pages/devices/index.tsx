@@ -13,27 +13,36 @@ import Table from '@mui/joy/Table';
 import Button from '@mui/joy/Button';
 import Code from '../../components/Code';
 import IconButton from '@mui/joy/IconButton';
-import { Check, ChevronLeft, ChevronRight } from 'lucide-react';
+import {
+  Check,
+  ChevronLeft,
+  ChevronRight,
+  Power,
+  PowerOff,
+} from 'lucide-react';
 import Input from '@mui/joy/Input';
 import Skeleton from '@mui/joy/Skeleton';
+import Chip from '@mui/joy/Chip';
+import StatusChip from '../../components/StatusChip';
+import LoanerChip from '../../components/LoanerChip';
 import { ApiCall } from '../../utils';
 
 import { LoaderParams } from '../../types/loaders';
 import { IDeviceStatus } from 'common/ext/oneToOneStatus.dto';
 
-interface Device {
+interface Device<DateFormat> {
   id: string;
   isOnline: boolean;
   serialNumber: string;
   lastSeen: {
-    timestamp: string;
+    timestamp: DateFormat;
     ipAddress: string;
   };
   lastUpdate: {
-    timestamp: string;
+    timestamp: DateFormat;
     loanerStatus: IDeviceStatus['loanerStatus'];
     deviceStatus: IDeviceStatus['deviceStatus'];
-    startDate: string | null;
+    startDate: DateFormat | null;
   };
   lastUser: {
     id: string;
@@ -41,12 +50,14 @@ interface Device {
     email: string;
   };
 }
-interface PageData {
+interface PageData<DateFormat> {
   data: {
     pages: number;
-    results: Device[];
+    results: Device<DateFormat>[];
   };
 }
+type PageDataRaw = PageData<string>;
+type PageDataParsed = PageData<Date>;
 
 function getPage(params: URLSearchParams) {
   const param = params.get('p');
@@ -110,14 +121,49 @@ function PageSelect({
   );
 }
 
-function DeviceEntry({ serialNumber, deviceStatus, email }) {
+function DeviceEntry({
+  serialNumber,
+  deviceStatus,
+  email,
+  isOnline,
+  lastSeen,
+  loanerStatus,
+}: {
+  serialNumber: string;
+  deviceStatus: IDeviceStatus['deviceStatus'];
+  isOnline: boolean;
+  email: string;
+  lastSeen: Date;
+  loanerStatus: IDeviceStatus['loanerStatus'];
+}) {
   return (
     <tr>
       <td>
-        <Code>{serialNumber}</Code>
+        <Code level="body-sm">{serialNumber}</Code>
       </td>
-      <td>{deviceStatus}</td>
-      <td>{email}</td>
+      <td>
+        <Box
+          sx={{ display: 'flex', flexWrap: 'wrap', columnGap: 2, rowGap: 1 }}
+        >
+          {lastSeen.toLocaleString()}
+          {isOnline ? (
+            <Chip startDecorator={<Power />} color="success">
+              Online
+            </Chip>
+          ) : (
+            <Chip startDecorator={<PowerOff />}>Offline</Chip>
+          )}
+        </Box>
+      </td>
+      <td>
+        <StatusChip type={deviceStatus} />
+      </td>
+      <td>
+        <Box sx={{ wordWrap: 'break-word' }}>{email}</Box>
+      </td>
+      <td>
+        <LoanerChip type={loanerStatus} />
+      </td>
     </tr>
   );
 }
@@ -154,7 +200,7 @@ function TableSkeleton() {
 }
 
 export default function Devices() {
-  const data = useLoaderData() as PageData;
+  const data = useLoaderData() as PageDataParsed;
   const [searchParams, setSearchParams] = useSearchParams();
   const navigation = useNavigation();
 
@@ -199,24 +245,36 @@ export default function Devices() {
           <thead>
             <tr>
               <th>Serial Number</th>
+              <th>Last Seen</th>
               <th>Status</th>
               <th>Last User</th>
+              <th>Device Type</th>
             </tr>
           </thead>
           <tbody>
             <React.Suspense fallback={<TableSkeleton />}>
               <Await resolve={data.data}>
-                {({ results: devices }: PageData['data']) =>
+                {({ results: devices }: PageDataParsed['data']) =>
                   isLoading ? (
                     <TableSkeleton />
                   ) : (
                     devices.map(
-                      ({ serialNumber, id, lastUpdate, lastUser }) => (
+                      ({
+                        serialNumber,
+                        id,
+                        lastUpdate,
+                        lastUser,
+                        isOnline,
+                        lastSeen,
+                      }) => (
                         <DeviceEntry
                           serialNumber={serialNumber}
                           key={id}
                           deviceStatus={lastUpdate.deviceStatus}
                           email={lastUser.email}
+                          isOnline={isOnline}
+                          lastSeen={lastSeen.timestamp}
+                          loanerStatus={lastUpdate.loanerStatus}
                         />
                       ),
                     )
@@ -229,7 +287,7 @@ export default function Devices() {
       </Sheet>
       <React.Suspense>
         <Await resolve={data.data}>
-          {({ pages }: PageData['data']) => (
+          {({ pages }: PageDataParsed['data']) => (
             <Box
               sx={{ mt: 2, display: 'flex', justifyContent: 'space-between' }}
             >
@@ -300,7 +358,50 @@ export function loadDevicesFirstPage({ request }: LoaderParams) {
     const page = getPage(params);
     return ApiCall(`/devices/search?page=${page}`, {
       signal: request.signal,
-    }).then((req) => req.json());
+    })
+      .then((req) => req.json())
+      .then(
+        ({ pages, results }: PageDataRaw['data']): PageDataParsed['data'] => {
+          const parsed = results.map(
+            ({
+              lastSeen: deviceLastSeen,
+              lastUpdate: deviceLastUpdate,
+              ...deviceRest
+            }) => {
+              const { timestamp: lastSeenTime, ...lastSeenRest } =
+                deviceLastSeen;
+              const lastSeen = {
+                timestamp: new Date(lastSeenTime),
+                ...lastSeenRest,
+              };
+              const {
+                timestamp: lastUpdatedTime,
+                startDate: startDateTime,
+                ...lastUpdatedRest
+              } = deviceLastUpdate;
+              const lastUpdate = {
+                timestamp: new Date(lastUpdatedTime),
+                startDate:
+                  startDateTime !== null
+                    ? new Date(startDateTime)
+                    : startDateTime,
+                ...lastUpdatedRest,
+              };
+
+              return {
+                lastSeen,
+                lastUpdate,
+                ...deviceRest,
+              };
+            },
+          );
+
+          return {
+            pages,
+            results: parsed,
+          };
+        },
+      );
   };
 
   return defer({

@@ -11,6 +11,9 @@ export default function Code({ children, ...props }) {
         py: 0.5,
         borderRadius: 'sm',
         bgcolor: 'background.level2',
+        overflow: 'hidden',
+        maxWidth: '100%',
+        wordWrap: 'break-word',
       }}
     >
       <Typography sx={{ fontFamily: 'monospace' }} {...props}>

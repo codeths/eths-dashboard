@@ -18,7 +18,7 @@ import ListItemButton from '@mui/joy/ListItemButton';
 import ListItemContent from '@mui/joy/ListItemContent';
 import Typography from '@mui/joy/Typography';
 import Divider from '@mui/joy/Divider';
-import Avatar from '@mui/joy/Avatar';
+import Avatar from '../components/Avatar';
 import { AuthContext } from '../AuthProvider';
 import { NavLink } from 'react-router-dom';
 import { ToastProvider } from '../ToastProvider';
@@ -147,12 +147,7 @@ export default function Layout() {
         </Box>
         <Divider />
         <Box sx={{ display: 'flex', gap: 1, alignItems: 'center' }}>
-          <Avatar
-            variant="outlined"
-            size="sm"
-            src={authCtx?.user?.photo}
-            slotProps={{ img: { referrerPolicy: 'no-referrer' } }}
-          />
+          <Avatar photo={authCtx?.user?.photo} />
           <Box sx={{ minWidth: 0, flex: 1 }}>
             <Typography level="title-sm">
               {authCtx?.user?.name || '-'}
