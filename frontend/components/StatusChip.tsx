@@ -9,6 +9,7 @@ import {
   HeartPulse,
   Wrench,
   AlertTriangle,
+  Receipt,
 } from 'lucide-react';
 
 import { IDeviceStatus } from 'common/ext/oneToOneStatus.dto';
@@ -29,7 +30,10 @@ export default function StatusChip({
       startDecorator: <HeartPulse />,
     },
     'Insurance Repair': { color: 'warning', startDecorator: <Wrench /> },
-    'Invoiced - Waiting for Payment': { color: 'primary' },
+    'Invoiced - Waiting for Payment': {
+      color: 'primary',
+      startDecorator: <Receipt />,
+    },
     'Lost/Stolen': { color: 'danger', startDecorator: <AlertTriangle /> },
     'Warranty Repair': { color: 'warning', startDecorator: <Wrench /> },
   };

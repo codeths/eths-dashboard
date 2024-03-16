@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
-import { Model } from 'mongoose';
+import { IDeviceStatus } from 'common/ext/oneToOneStatus.dto';
+import { FilterQuery, Model } from 'mongoose';
 import { Device, DeviceDocument } from 'src/schemas/Device.schema';
 import {
   OneToOneStatusUpdateV1Type,
@@ -9,6 +10,13 @@ import {
   RegistrationEventV1Type,
 } from 'src/schemas/Event.schema';
 import { ExtUserDocument } from 'src/schemas/ExtUser.schema';
+
+type DeviceQueryResponse = DeviceDocument & {
+  lastSeen: PingEventV1Type | RegistrationEventV1Type;
+  lastUpdate: OneToOneStatusUpdateV1Type;
+  lastUser: ExtUserDocument;
+  isOnline: boolean;
+};
 
 @Injectable()
 export class DeviceService {
@@ -45,16 +53,25 @@ export class DeviceService {
     return { count };
   }
 
-  async getAllDevices(limit: number, skip: number) {
+  async getAllDevices(
+    limit: number,
+    skip: number,
+    filters: {
+      status?: IDeviceStatus['deviceStatus'];
+      type?: IDeviceStatus['loanerStatus'];
+    },
+  ) {
+    let parsedFilters: FilterQuery<any> = {};
+    if (filters.status)
+      parsedFilters['lastUpdate.deviceStatus'] = filters.status;
+    if (filters.type)
+      parsedFilters['lastUpdate.metadata.loanerStatus'] = filters.type;
+
     const query = this.deviceModel
-      .aggregate<
-        DeviceDocument & {
-          lastSeen: PingEventV1Type | RegistrationEventV1Type;
-          lastUpdate: OneToOneStatusUpdateV1Type;
-          lastUser: ExtUserDocument;
-          isOnline: boolean;
-        }
-      >()
+      .aggregate<{
+        count: [{ count: number }];
+        results: DeviceQueryResponse[];
+      }>()
       .lookup({
         from: 'events',
         localField: '_id',
@@ -109,15 +126,31 @@ export class DeviceService {
           ],
         },
       })
-      .skip(skip)
-      .limit(limit);
+      .match(parsedFilters)
+      .facet({
+        count: [{ $count: 'count' }],
+        results: [{ $skip: skip }, { $limit: limit }],
+      });
 
-    const results = await query.exec();
-    const count = await this.deviceModel.countDocuments().exec();
+    const queryResponse = await query.exec();
 
-    return {
-      results,
-      count,
-    };
+    if (queryResponse.length > 0 && queryResponse[0].results.length > 0) {
+      const [
+        {
+          count: [{ count }],
+          results,
+        },
+      ] = await query.exec();
+
+      return {
+        results,
+        count,
+      };
+    } else {
+      return {
+        results: [],
+        count: 0,
+      };
+    }
   }
 }

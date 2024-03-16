@@ -7,6 +7,7 @@ import {
   Get,
   NotFoundException,
   Param,
+  ParseEnumPipe,
   ParseIntPipe,
   Patch,
   Query,
@@ -17,12 +18,17 @@ import {
 import { AuthGuard } from './auth.guard';
 import { AuthenticatedRequest } from './types/request';
 import { WebUser } from 'src/schemas/WebUser.schema';
-import { ApiTags } from '@nestjs/swagger';
+import { ApiQuery, ApiTags } from '@nestjs/swagger';
 import { DeviceService } from './device.service';
 import { Roles } from './roles.decorator';
 import { RolesGuard } from './roles.guard';
 import { AccessService } from './access.service';
 import { RoleUpdateDto } from 'common/web/roleUpdate.dto';
+import {
+  DeviceStatusValues,
+  DeviceTypeValues,
+  IDeviceStatus,
+} from 'common/ext/oneToOneStatus.dto';
 
 @Controller({
   path: 'web',
@@ -49,10 +55,17 @@ export class WebController {
     return await this.deviceService.getDevicesOnline();
   }
 
+  @ApiQuery({ name: 'page', required: false, type: Number })
+  @ApiQuery({ name: 'status', required: false, enum: DeviceStatusValues })
+  @ApiQuery({ name: 'type', required: false, enum: DeviceTypeValues })
   @Roles(['View'])
   @Get('devices/search')
   async searchDevices(
     @Query('page', new DefaultValuePipe(0), ParseIntPipe) page: number,
+    @Query('status', new ParseEnumPipe(DeviceStatusValues, { optional: true }))
+    status?: IDeviceStatus['deviceStatus'],
+    @Query('type', new ParseEnumPipe(DeviceTypeValues, { optional: true }))
+    type?: IDeviceStatus['loanerStatus'],
   ) {
     if (page < 0) throw new BadRequestException('Page cannot be negative');
 
@@ -60,6 +73,7 @@ export class WebController {
     const { results: devices, count } = await this.deviceService.getAllDevices(
       itemsPerPage,
       page * itemsPerPage,
+      { status, type },
     );
     const response = devices.map(
       ({ _id, serialNumber, lastSeen, lastUser, lastUpdate, isOnline }) => {
