@@ -20,6 +20,7 @@ import Dashboard, { loadDashboard } from './pages/dashboard';
 import Management, { loadManagement, managementAction } from './pages/manage';
 import Devices, { loadDevicesFirstPage } from './pages/devices';
 import { AuthProvider, AuthContext } from './AuthProvider';
+import CrashHandler from './pages/error';
 
 import { AppLoaderData } from './types/loaders';
 
@@ -61,6 +62,7 @@ const router = createBrowserRouter([
   {
     path: '/',
     element: <App />,
+    errorElement: <CrashHandler />,
     shouldRevalidate: () => false,
     loader: async ({ request }): Promise<AppLoaderData> => {
       const req = await ApiCall('/me', { signal: request.signal });
