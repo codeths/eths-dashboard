@@ -194,6 +194,16 @@ function RowSkeleton() {
           <Skeleton>Lorem ipsum dolor.</Skeleton>
         </Typography>
       </td>
+      <td>
+        <Typography>
+          <Skeleton>Lorem ipsum.</Skeleton>
+        </Typography>
+      </td>
+      <td>
+        <Typography>
+          <Skeleton>Lorem ipsum dolor.</Skeleton>
+        </Typography>
+      </td>
     </tr>
   );
 }
