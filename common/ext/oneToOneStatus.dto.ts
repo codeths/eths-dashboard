@@ -1,17 +1,24 @@
 type APIResponseMessage = 'Device not found' | 'The api key is incorrect';
 
-type DeviceStatus =
-  | 'Available'
-  | 'Broken'
-  | 'Charging'
-  | 'Deprovisioned'
-  | 'Given to Assignee'
-  | 'In-house Troubleshooting/Repair'
-  | 'Insurance Repair'
-  | 'Invoiced - Waiting for Payment'
-  | 'Lost/Stolen'
-  | 'Warranty Repair';
-type DeviceType = 'Not A Loaner' | 'Short Term Loaners' | 'Long Term Loaners';
+export const DeviceStatusValues = [
+  'Available',
+  'Broken',
+  'Charging',
+  'Deprovisioned',
+  'Given to Assignee',
+  'In-house Troubleshooting/Repair',
+  'Insurance Repair',
+  'Invoiced - Waiting for Payment',
+  'Lost/Stolen',
+  'Warranty Repair',
+] as const;
+export const DeviceTypeValues = [
+  'Not A Loaner',
+  'Short Term Loaners',
+  'Long Term Loaners',
+] as const;
+type DeviceStatus = (typeof DeviceStatusValues)[number];
+type DeviceType = (typeof DeviceTypeValues)[number];
 
 export class IDeviceStatus {
   serial: string;

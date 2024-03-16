@@ -25,10 +25,18 @@ import Skeleton from '@mui/joy/Skeleton';
 import Chip from '@mui/joy/Chip';
 import StatusChip from '../../components/StatusChip';
 import LoanerChip from '../../components/LoanerChip';
+import FormControl from '@mui/joy/FormControl';
+import FormLabel from '@mui/joy/FormLabel';
+import Select from '@mui/joy/Select';
+import Option from '@mui/joy/Option';
 import { ApiCall } from '../../utils';
 
 import { LoaderParams } from '../../types/loaders';
-import { IDeviceStatus } from 'common/ext/oneToOneStatus.dto';
+import {
+  DeviceStatusValues,
+  DeviceTypeValues,
+  IDeviceStatus,
+} from 'common/ext/oneToOneStatus.dto';
 
 interface Device<DateFormat> {
   id: string;
@@ -199,12 +207,57 @@ function TableSkeleton() {
   );
 }
 
+function isStatusValue(
+  value: string,
+): value is IDeviceStatus['deviceStatus'] | 'all' {
+  return (
+    value === 'all' ||
+    DeviceStatusValues.includes(value as IDeviceStatus['deviceStatus'])
+  );
+}
+function isTypeValue(
+  value: string,
+): value is IDeviceStatus['loanerStatus'] | 'all' {
+  return (
+    value === 'all' ||
+    DeviceTypeValues.includes(value as IDeviceStatus['loanerStatus'])
+  );
+}
+
 export default function Devices() {
   const data = useLoaderData() as PageDataParsed;
   const [searchParams, setSearchParams] = useSearchParams();
   const navigation = useNavigation();
+  const [statusValue, setStatusValue] = useState<
+    IDeviceStatus['deviceStatus'] | 'all'
+  >('all');
+  const [typeValue, setTypeValue] = useState<
+    IDeviceStatus['loanerStatus'] | 'all'
+  >('all');
 
-  const currentPage = useMemo(() => getPage(searchParams), [searchParams]);
+  const setFilter = (key: 'p' | 'status' | 'type', value: string | number) => {
+    setSearchParams((prev) => {
+      if (key !== 'p') prev.delete('p');
+
+      if (['status', 'type'].includes(key) && value === 'all') {
+        prev.delete(key);
+      } else {
+        prev.set(key, typeof value === 'number' ? `${value}` : value);
+      }
+
+      return prev;
+    });
+  };
+
+  const currentPage = useMemo(() => {
+    const status = searchParams.get('status') || 'all';
+    if (isStatusValue(status)) setStatusValue(status);
+
+    const type = searchParams.get('type') || 'all';
+    if (isTypeValue(type)) setTypeValue(type);
+
+    return getPage(searchParams);
+  }, [searchParams]);
   const isLoading = useMemo(() => navigation.state === 'loading', [navigation]);
   return (
     <Box
@@ -216,6 +269,49 @@ export default function Devices() {
     >
       <Typography level="h2">Devices</Typography>
       <Typography>Includes all enterprise enrolled Chromebooks</Typography>
+      <Box sx={{ display: 'flex', justifyContent: 'flex-end', gap: 2 }}>
+        <FormControl>
+          <FormLabel>Status</FormLabel>
+          <Select
+            size="sm"
+            value={statusValue}
+            sx={{ minWidth: '180px' }}
+            onChange={(_, e) => e && setFilter('status', e)}
+            disabled={isLoading}
+          >
+            <Option value="all">All</Option>
+            <Option value="Available">Available</Option>
+            <Option value="Broken">Broken</Option>
+            <Option value="Charging">Charging</Option>
+            <Option value="Deprovisioned">Deprovisioned</Option>
+            <Option value="Given to Assignee">Given to Assignee</Option>
+            <Option value="In-house Troubleshooting/Repair">
+              In-house Troubleshooting/Repair
+            </Option>
+            <Option value="Insurance Repair">Insurance Repair</Option>
+            <Option value="Invoiced - Waiting for Payment">
+              Invoiced - Waiting for Payment
+            </Option>
+            <Option value="Lost/Stolen">Lost/Stolen</Option>
+            <Option value="Warranty Repair">Warranty Repair</Option>
+          </Select>
+        </FormControl>
+        <FormControl>
+          <FormLabel>Type</FormLabel>
+          <Select
+            size="sm"
+            value={typeValue}
+            sx={{ minWidth: '160px' }}
+            onChange={(_, e) => e && setFilter('type', e)}
+            disabled={isLoading}
+          >
+            <Option value="all">All</Option>
+            <Option value="Short Term Loaners">Short Term Loaners</Option>
+            <Option value="Long Term Loaners">Long Term Loaners</Option>
+            <Option value="Not A Loaner">Not A Loaner</Option>
+          </Select>
+        </FormControl>
+      </Box>
       <Sheet
         variant="outlined"
         sx={{
@@ -295,7 +391,7 @@ export default function Devices() {
                 startDecorator={<ChevronLeft />}
                 variant="soft"
                 disabled={currentPage === 0 || isLoading}
-                onClick={() => setSearchParams({ p: `${currentPage}` })}
+                onClick={() => setFilter('p', currentPage)}
               >
                 Previous
               </Button>
@@ -311,7 +407,7 @@ export default function Devices() {
                   size="sm"
                   variant="outlined"
                   color={currentPage === 0 ? 'primary' : 'neutral'}
-                  onClick={() => setSearchParams({ p: '1' })}
+                  onClick={() => setFilter('p', 1)}
                   disabled={isLoading}
                 >
                   1
@@ -321,14 +417,14 @@ export default function Devices() {
                     <PageSelect
                       currentPage={currentPage}
                       totalPages={pages}
-                      gotoPage={(page) => setSearchParams({ p: `${page}` })}
+                      gotoPage={(page) => setFilter('p', page)}
                       disabled={isLoading}
                     />
                     <IconButton
                       size="sm"
                       variant="outlined"
                       color={currentPage + 1 === pages ? 'primary' : 'neutral'}
-                      onClick={() => setSearchParams({ p: `${pages}` })}
+                      onClick={() => setFilter('p', pages)}
                       disabled={isLoading}
                     >
                       {pages}
@@ -340,7 +436,7 @@ export default function Devices() {
                 endDecorator={<ChevronRight />}
                 variant="soft"
                 disabled={currentPage + 1 === pages || isLoading}
-                onClick={() => setSearchParams({ p: `${currentPage + 2}` })}
+                onClick={() => setFilter('p', currentPage + 2)}
               >
                 Next
               </Button>
@@ -356,9 +452,21 @@ export function loadDevicesFirstPage({ request }: LoaderParams) {
   const load = () => {
     const params = new URL(request.url).searchParams;
     const page = getPage(params);
-    return ApiCall(`/devices/search?page=${page}`, {
-      signal: request.signal,
-    })
+    const otherProps: string[] = [];
+    for (const key of ['status', 'type']) {
+      const rawValue = params.get(key);
+      if (rawValue !== null)
+        otherProps.push(`${key}=${encodeURIComponent(rawValue)}`);
+    }
+
+    return ApiCall(
+      `/devices/search?page=${page}${
+        otherProps.length ? `&${otherProps.join('&')}` : ''
+      }`,
+      {
+        signal: request.signal,
+      },
+    )
       .then((req) => req.json())
       .then(
         ({ pages, results }: PageDataRaw['data']): PageDataParsed['data'] => {
