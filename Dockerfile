@@ -2,7 +2,7 @@ FROM node:20-alpine AS build
 WORKDIR /build
 COPY package*.json ./
 RUN npm ci
-COPY tsconfig.json tsconfig.build.json vite.config.ts ./
+COPY tsconfig.json tsconfig.build.json vite.config.mts ./
 COPY common common
 COPY src src
 RUN npm run build
