@@ -353,7 +353,7 @@ export default function Devices() {
                 {({ results: devices }: PageDataParsed['data']) =>
                   isLoading ? (
                     <TableSkeleton />
-                  ) : (
+                  ) : devices.length > 0 ? (
                     devices.map(
                       ({
                         serialNumber,
@@ -374,6 +374,14 @@ export default function Devices() {
                         />
                       ),
                     )
+                  ) : (
+                    <td colSpan={5}>
+                      <Box
+                        sx={{ display: 'grid', placeContent: 'center', py: 4 }}
+                      >
+                        <Typography level="h4">No results</Typography>
+                      </Box>
+                    </td>
                   )
                 }
               </Await>
@@ -435,7 +443,7 @@ export default function Devices() {
               <Button
                 endDecorator={<ChevronRight />}
                 variant="soft"
-                disabled={currentPage + 1 === pages || isLoading}
+                disabled={currentPage + 1 >= pages || isLoading}
                 onClick={() => setFilter('p', currentPage + 2)}
               >
                 Next
@@ -467,7 +475,13 @@ export function loadDevicesFirstPage({ request }: LoaderParams) {
         signal: request.signal,
       },
     )
-      .then((req) => req.json())
+      .then((req) => {
+        if (!req.ok) {
+          throw new Error(`Device search failed: error ${req.status}`);
+        } else {
+          return req.json();
+        }
+      })
       .then(
         ({ pages, results }: PageDataRaw['data']): PageDataParsed['data'] => {
           const parsed = results.map(
@@ -516,3 +530,5 @@ export function loadDevicesFirstPage({ request }: LoaderParams) {
     data: load(),
   });
 }
+
+export { default as SearchError } from './searchError';

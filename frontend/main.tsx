@@ -18,7 +18,7 @@ import Login from './pages/login';
 import Layout from './pages/layout';
 import Dashboard, { loadDashboard } from './pages/dashboard';
 import Management, { loadManagement, managementAction } from './pages/manage';
-import Devices, { loadDevicesFirstPage } from './pages/devices';
+import Devices, { loadDevicesFirstPage, SearchError } from './pages/devices';
 import { AuthProvider, AuthContext } from './AuthProvider';
 import CrashHandler from './pages/error';
 
@@ -101,6 +101,7 @@ const router = createBrowserRouter([
           {
             path: 'devices',
             element: <Devices />,
+            errorElement: <SearchError />,
             loader: loadDevicesFirstPage,
           },
           {
