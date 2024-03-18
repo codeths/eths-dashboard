@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { IDeviceStatus } from 'common/ext/oneToOneStatus.dto';
-import { FilterQuery, Model } from 'mongoose';
+import { FilterQuery, Model, SortOrder } from 'mongoose';
 import { Device, DeviceDocument } from 'src/schemas/Device.schema';
 import {
   OneToOneStatusUpdateV1Type,
@@ -10,6 +10,7 @@ import {
   RegistrationEventV1Type,
 } from 'src/schemas/Event.schema';
 import { ExtUserDocument } from 'src/schemas/ExtUser.schema';
+import { OrderValue, SortValue } from './types/devices';
 
 type DeviceQueryResponse = DeviceDocument & {
   lastSeen: PingEventV1Type | RegistrationEventV1Type;
@@ -59,6 +60,8 @@ export class DeviceService {
     filters: {
       status?: IDeviceStatus['deviceStatus'];
       type?: IDeviceStatus['loanerStatus'];
+      sortKey?: SortValue;
+      sortOrder?: OrderValue;
     },
   ) {
     let parsedFilters: FilterQuery<any> = {};
@@ -67,7 +70,22 @@ export class DeviceService {
     if (filters.type)
       parsedFilters['lastUpdate.metadata.loanerStatus'] = filters.type;
 
-    const query = this.deviceModel
+    const sortKeyMap: Record<SortValue, string> = {
+      serial: 'serialNumber',
+      lastSeen: 'lastSeen.timestamp',
+      status: 'lastUpdate.deviceStatus',
+      user: 'lastUser.email',
+      loaner: 'lastUpdate.metadata.loanerStatus',
+    };
+    let sortOptions:
+      | Record<(typeof sortKeyMap)[SortValue], SortOrder>
+      | undefined;
+    if (filters.sortKey)
+      sortOptions = {
+        [sortKeyMap[filters.sortKey]]: filters.sortOrder || 'ascending',
+      };
+
+    let query = this.deviceModel
       .aggregate<{
         count: [{ count: number }];
         results: DeviceQueryResponse[];
@@ -126,11 +144,14 @@ export class DeviceService {
           ],
         },
       })
-      .match(parsedFilters)
-      .facet({
-        count: [{ $count: 'count' }],
-        results: [{ $skip: skip }, { $limit: limit }],
-      });
+      .match(parsedFilters);
+
+    if (sortOptions) query = query.sort(sortOptions);
+
+    query = query.facet({
+      count: [{ $count: 'count' }],
+      results: [{ $skip: skip }, { $limit: limit }],
+    });
 
     const queryResponse = await query.exec();
 

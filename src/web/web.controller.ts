@@ -29,6 +29,7 @@ import {
   DeviceTypeValues,
   IDeviceStatus,
 } from 'common/ext/oneToOneStatus.dto';
+import { OrderValue, SortValue, sortOrders, sortValues } from './types/devices';
 
 @Controller({
   path: 'web',
@@ -58,6 +59,17 @@ export class WebController {
   @ApiQuery({ name: 'page', required: false, type: Number })
   @ApiQuery({ name: 'status', required: false, enum: DeviceStatusValues })
   @ApiQuery({ name: 'type', required: false, enum: DeviceTypeValues })
+  @ApiQuery({
+    name: 'sort',
+    required: false,
+    enum: sortValues,
+  })
+  @ApiQuery({
+    name: 'order',
+    required: false,
+    enum: sortOrders,
+    description: 'Only applies when `sort` is set',
+  })
   @Roles(['View'])
   @Get('devices/search')
   async searchDevices(
@@ -66,6 +78,10 @@ export class WebController {
     status?: IDeviceStatus['deviceStatus'],
     @Query('type', new ParseEnumPipe(DeviceTypeValues, { optional: true }))
     type?: IDeviceStatus['loanerStatus'],
+    @Query('sort', new ParseEnumPipe(sortValues, { optional: true }))
+    sortKey?: SortValue,
+    @Query('order', new ParseEnumPipe(sortOrders, { optional: true }))
+    sortOrder?: OrderValue,
   ) {
     if (page < 0) throw new BadRequestException('Page cannot be negative');
 
@@ -73,7 +89,7 @@ export class WebController {
     const { results: devices, count } = await this.deviceService.getAllDevices(
       itemsPerPage,
       page * itemsPerPage,
-      { status, type },
+      { status, type, sortKey, sortOrder },
     );
     const response = devices.map(
       ({ _id, serialNumber, lastSeen, lastUser, lastUpdate, isOnline }) => {
