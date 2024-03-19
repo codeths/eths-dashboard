@@ -10,7 +10,7 @@ import {
   RegistrationEventV1Type,
 } from 'src/schemas/Event.schema';
 import { ExtUserDocument } from 'src/schemas/ExtUser.schema';
-import { OrderValue, SortValue } from './types/devices';
+import { OrderValue, SortValue } from 'common/web/deviceSort';
 
 type DeviceQueryResponse = DeviceDocument & {
   lastSeen: PingEventV1Type | RegistrationEventV1Type;

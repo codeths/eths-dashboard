@@ -29,7 +29,12 @@ import {
   DeviceTypeValues,
   IDeviceStatus,
 } from 'common/ext/oneToOneStatus.dto';
-import { OrderValue, SortValue, sortOrders, sortValues } from './types/devices';
+import {
+  OrderValue,
+  SortValue,
+  sortOrders,
+  sortValues,
+} from 'common/web/deviceSort';
 
 @Controller({
   path: 'web',
