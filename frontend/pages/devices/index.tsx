@@ -1,4 +1,10 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, {
+  createContext,
+  useContext,
+  useEffect,
+  useMemo,
+  useState,
+} from 'react';
 import {
   Await,
   defer,
@@ -14,6 +20,8 @@ import Button from '@mui/joy/Button';
 import Code from '../../components/Code';
 import IconButton from '@mui/joy/IconButton';
 import {
+  ArrowDownWideNarrow,
+  ArrowUpWideNarrow,
   Check,
   ChevronLeft,
   ChevronRight,
@@ -37,6 +45,12 @@ import {
   DeviceTypeValues,
   IDeviceStatus,
 } from 'common/ext/oneToOneStatus.dto';
+import {
+  OrderValue,
+  SortValue,
+  sortOrders,
+  sortValues,
+} from 'common/web/deviceSort';
 
 interface Device<DateFormat> {
   id: string;
@@ -217,6 +231,39 @@ function TableSkeleton() {
   );
 }
 
+const HeaderContext = createContext<{
+  active?: SortValue | null;
+  toggleCol: (col: SortValue) => void;
+  isLoading: boolean;
+  order: OrderValue;
+} | null>(null);
+function SortHeader({ children, type }: { children: any; type: SortValue }) {
+  const context = useContext(HeaderContext);
+  const isActive = useMemo(() => context?.active === type, [context, type]);
+  const decorator = useMemo(() => {
+    if (isActive && context) {
+      return context.order === 'desc' ? (
+        <ArrowDownWideNarrow />
+      ) : (
+        <ArrowUpWideNarrow />
+      );
+    }
+  }, [isActive, context]);
+  return (
+    <th>
+      <Button
+        size="sm"
+        variant="plain"
+        startDecorator={decorator}
+        onClick={() => context?.toggleCol(type)}
+        disabled={context?.isLoading}
+      >
+        {children}
+      </Button>
+    </th>
+  );
+}
+
 function isStatusValue(
   value: string,
 ): value is IDeviceStatus['deviceStatus'] | 'all' {
@@ -233,6 +280,12 @@ function isTypeValue(
     DeviceTypeValues.includes(value as IDeviceStatus['loanerStatus'])
   );
 }
+function isSortValue(value: string | null): value is SortValue | null {
+  return value === null || sortValues.includes(value as SortValue);
+}
+function isOrderValue(value: string | null): value is OrderValue | null {
+  return value === null || sortOrders.includes(value as OrderValue);
+}
 
 export default function Devices() {
   const data = useLoaderData() as PageDataParsed;
@@ -244,13 +297,21 @@ export default function Devices() {
   const [typeValue, setTypeValue] = useState<
     IDeviceStatus['loanerStatus'] | 'all'
   >('all');
+  const [activeCol, setActiveCol] = useState<SortValue | null>(null);
+  const [order, setOrder] = useState<OrderValue>('desc');
 
-  const setFilter = (key: 'p' | 'status' | 'type', value: string | number) => {
+  const setFilter = (
+    key: 'p' | 'status' | 'type' | 'sort' | 'order',
+    value: string | number,
+  ) => {
     setSearchParams((prev) => {
       if (key !== 'p') prev.delete('p');
 
       if (['status', 'type'].includes(key) && value === 'all') {
         prev.delete(key);
+      } else if (key === 'sort') {
+        prev.set('order', 'desc');
+        prev.set('sort', value as string);
       } else {
         prev.set(key, typeof value === 'number' ? `${value}` : value);
       }
@@ -259,12 +320,26 @@ export default function Devices() {
     });
   };
 
+  const toggleCol = (col: SortValue) => {
+    if (col === activeCol) {
+      setFilter('order', order === 'asc' ? 'desc' : 'asc');
+    } else {
+      setFilter('sort', col);
+    }
+  };
+
   const currentPage = useMemo(() => {
     const status = searchParams.get('status') || 'all';
     if (isStatusValue(status)) setStatusValue(status);
 
     const type = searchParams.get('type') || 'all';
     if (isTypeValue(type)) setTypeValue(type);
+
+    const sort = searchParams.get('sort');
+    if (isSortValue(sort)) setActiveCol(sort);
+
+    const searchOrder = searchParams.get('order');
+    if (isOrderValue(searchOrder)) setOrder(searchOrder || 'desc');
 
     return getPage(searchParams);
   }, [searchParams]);
@@ -350,11 +425,15 @@ export default function Devices() {
         >
           <thead>
             <tr>
-              <th>Serial Number</th>
-              <th>Last Seen</th>
-              <th>Status</th>
-              <th>Last User</th>
-              <th>Device Type</th>
+              <HeaderContext.Provider
+                value={{ active: activeCol, toggleCol, isLoading, order }}
+              >
+                <SortHeader type="serial">Serial Number</SortHeader>
+                <SortHeader type="lastSeen">Last Seen</SortHeader>
+                <SortHeader type="status">Status</SortHeader>
+                <SortHeader type="user">Last User</SortHeader>
+                <SortHeader type="loaner">Device Type</SortHeader>
+              </HeaderContext.Provider>
             </tr>
           </thead>
           <tbody>
@@ -471,7 +550,7 @@ export function loadDevicesFirstPage({ request }: LoaderParams) {
     const params = new URL(request.url).searchParams;
     const page = getPage(params);
     const otherProps: string[] = [];
-    for (const key of ['status', 'type']) {
+    for (const key of ['status', 'type', 'sort', 'order']) {
       const rawValue = params.get(key);
       if (rawValue !== null)
         otherProps.push(`${key}=${encodeURIComponent(rawValue)}`);
