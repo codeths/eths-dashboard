@@ -79,14 +79,18 @@ export class WebController {
   @Get('devices/search')
   async searchDevices(
     @Query('page', new DefaultValuePipe(0), ParseIntPipe) page: number,
+    @Query(
+      'order',
+      new DefaultValuePipe('desc'),
+      new ParseEnumPipe(sortOrders, { optional: true }),
+    )
+    sortOrder: OrderValue,
     @Query('status', new ParseEnumPipe(DeviceStatusValues, { optional: true }))
     status?: IDeviceStatus['deviceStatus'],
     @Query('type', new ParseEnumPipe(DeviceTypeValues, { optional: true }))
     type?: IDeviceStatus['loanerStatus'],
     @Query('sort', new ParseEnumPipe(sortValues, { optional: true }))
     sortKey?: SortValue,
-    @Query('order', new ParseEnumPipe(sortOrders, { optional: true }))
-    sortOrder?: OrderValue,
   ) {
     if (page < 0) throw new BadRequestException('Page cannot be negative');
 

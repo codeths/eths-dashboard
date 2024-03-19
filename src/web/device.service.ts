@@ -82,7 +82,7 @@ export class DeviceService {
       | undefined;
     if (filters.sortKey)
       sortOptions = {
-        [sortKeyMap[filters.sortKey]]: filters.sortOrder || 'ascending',
+        [sortKeyMap[filters.sortKey]]: filters.sortOrder || 'descending',
       };
 
     let query = this.deviceModel
