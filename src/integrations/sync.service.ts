@@ -37,32 +37,36 @@ export class SyncService implements OnApplicationBootstrap {
   }
 
   async updateStatus(deviceID: string, deviceSerial: string) {
-    const [{ data: apiResponse }, cached] = await Promise.all([
-      this.oneToOneService.getResponseFromOneToOne(deviceSerial),
-      this.getCachedStatusForDevice(deviceID),
-    ]);
-    if (!apiResponse.success || !apiResponse.object)
-      throw new Error(`Failed to fetch status for ${deviceSerial}`);
-    if (!cached)
-      throw new Error(`No status cached for ${deviceSerial} (${deviceID})`);
+    try {
+      const [{ data: apiResponse }, cached] = await Promise.all([
+        this.oneToOneService.getResponseFromOneToOne(deviceSerial),
+        this.getCachedStatusForDevice(deviceID),
+      ]);
+      if (!apiResponse.success || !apiResponse.object)
+        throw new Error(`Failed to fetch status for ${deviceSerial}`);
+      if (!cached)
+        throw new Error(`No status cached for ${deviceSerial} (${deviceID})`);
 
-    const statusChanged =
-      apiResponse.object.deviceStatus !== cached.deviceStatus;
-    const typeChanged =
-      apiResponse.object.loanerStatus !== cached.metadata.loanerStatus;
+      const statusChanged =
+        apiResponse.object.deviceStatus !== cached.deviceStatus;
+      const typeChanged =
+        apiResponse.object.loanerStatus !== cached.metadata.loanerStatus;
 
-    if (statusChanged || typeChanged) {
-      this.logger.log(`Status changed in 1:1 for ${deviceSerial}`);
-      try {
-        await this.oneToOneService.generateStatusEvent(
-          apiResponse.object,
-          deviceID,
-        );
-      } catch (error) {
-        throw new Error(
-          `Failed to save updated status for ${deviceSerial}: ${error}`,
-        );
+      if (statusChanged || typeChanged) {
+        this.logger.log(`Status changed in 1:1 for ${deviceSerial}`);
+        try {
+          await this.oneToOneService.generateStatusEvent(
+            apiResponse.object,
+            deviceID,
+          );
+        } catch (error) {
+          throw new Error(
+            `Failed to save updated status for ${deviceSerial}: ${error}`,
+          );
+        }
       }
+    } catch (error) {
+      this.logger.warn(error);
     }
   }
 
@@ -93,24 +97,50 @@ export class SyncService implements OnApplicationBootstrap {
       .exec();
   }
 
+  async scheduleTasks(
+    loanerStatus: IDeviceStatus['loanerStatus'],
+    intervalLength: number,
+  ) {
+    try {
+      const devices = await this.getAllDevicesForType(loanerStatus);
+
+      for (const [index, device] of devices.entries()) {
+        const deadline = Math.floor((intervalLength / devices.length) * index);
+        setTimeout(
+          () =>
+            this.updateStatus(device._id.toHexString(), device.serialNumber),
+          deadline,
+        );
+      }
+    } catch (error) {
+      this.logger.error(
+        `Failed to schedule sync for "${loanerStatus}": ${error}`,
+      );
+    }
+  }
+
   @Interval('sync.personal', DeviceRefreshRates.personal)
   syncPersonalDevices() {
     this.logger.debug('syncPersonalDevices()');
+    this.scheduleTasks('Not A Loaner', DeviceRefreshRates.personal);
   }
 
   @Interval('sync.shortTerm', DeviceRefreshRates.shortTerm)
   syncShortTerm() {
     this.logger.debug('syncShortTerm()');
+    this.scheduleTasks('Short Term Loaners', DeviceRefreshRates.shortTerm);
   }
 
   @Interval('sync.longTerm', DeviceRefreshRates.longTerm)
   syncLongTerm() {
     this.logger.debug('syncLongTerm()');
+    this.scheduleTasks('Long Term Loaners', DeviceRefreshRates.longTerm);
   }
 
   @Interval('sync.cart', DeviceRefreshRates.cart)
   syncCartDevices() {
     this.logger.debug('syncCartDevices()');
+    // Unimplemented for now, waiting on IIT...
   }
 
   onApplicationBootstrap() {
