@@ -2,8 +2,14 @@ import { Injectable, Logger, OnApplicationBootstrap } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Interval } from '@nestjs/schedule';
 import { Model } from 'mongoose';
-import { OneToOneStatusUpdateV1 } from 'src/schemas/Event.schema';
+import {
+  OneToOneStatusUpdateV1,
+  OneToOneStatusUpdateV1Type,
+} from 'src/schemas/Event.schema';
+import { Device, DeviceDocument } from 'src/schemas/Device.schema';
 import { OneToOneService } from './OneToOne.service';
+
+import { IDeviceStatus } from 'common/ext/oneToOneStatus.dto';
 
 export const DeviceRefreshRates = {
   personal: 60 * 60_000,
@@ -18,6 +24,8 @@ export class SyncService implements OnApplicationBootstrap {
     @InjectModel(OneToOneStatusUpdateV1.name)
     private readonly oneToOneStatusModel: Model<OneToOneStatusUpdateV1>,
     private readonly oneToOneService: OneToOneService,
+    @InjectModel(Device.name)
+    private readonly deviceModel: Model<Device>,
   ) {}
   private readonly logger = new Logger(SyncService.name);
 
@@ -56,6 +64,33 @@ export class SyncService implements OnApplicationBootstrap {
         );
       }
     }
+  }
+
+  getAllDevicesForType(loanerStatus: IDeviceStatus['loanerStatus']) {
+    return this.deviceModel
+      .aggregate<DeviceDocument & { lastUpdate: OneToOneStatusUpdateV1Type }>()
+      .lookup({
+        from: 'events',
+        localField: '_id',
+        foreignField: 'metadata.device',
+        pipeline: [
+          {
+            $match: {
+              __t: 'OneToOneStatusUpdateV1',
+            },
+          },
+        ],
+        as: 'lastUpdate',
+      })
+      .addFields({
+        lastUpdate: {
+          $last: '$lastUpdate',
+        },
+      })
+      .match({
+        'lastUpdate.metadata.loanerStatus': loanerStatus,
+      })
+      .exec();
   }
 
   @Interval('sync.personal', DeviceRefreshRates.personal)
