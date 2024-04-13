@@ -51,8 +51,13 @@ export class SyncService implements OnApplicationBootstrap {
         apiResponse.object.deviceStatus !== cached.deviceStatus;
       const typeChanged =
         apiResponse.object.loanerStatus !== cached.metadata.loanerStatus;
+      const apiStartDateMS = apiResponse.object.startDate
+        ? new Date(apiResponse.object.startDate).getTime()
+        : undefined;
+      const cachedStartDateMS = cached.startDate?.getTime();
+      const startDateChanged = cachedStartDateMS === apiStartDateMS;
 
-      if (statusChanged || typeChanged) {
+      if (statusChanged || typeChanged || startDateChanged) {
         this.logger.log(`Status changed in 1:1 for ${deviceSerial}`);
         try {
           await this.oneToOneService.generateStatusEvent(
