@@ -55,7 +55,7 @@ export class SyncService implements OnApplicationBootstrap {
         ? new Date(apiResponse.object.startDate).getTime()
         : undefined;
       const cachedStartDateMS = cached.startDate?.getTime();
-      const startDateChanged = cachedStartDateMS === apiStartDateMS;
+      const startDateChanged = cachedStartDateMS !== apiStartDateMS;
 
       if (statusChanged || typeChanged || startDateChanged) {
         this.logger.log(`Status changed in 1:1 for ${deviceSerial}`);
