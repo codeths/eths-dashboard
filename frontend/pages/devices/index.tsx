@@ -27,6 +27,7 @@ import {
   ChevronRight,
   Power,
   PowerOff,
+  Search,
 } from 'lucide-react';
 import Input from '@mui/joy/Input';
 import Skeleton from '@mui/joy/Skeleton';
@@ -299,9 +300,10 @@ export default function Devices() {
   >('all');
   const [activeCol, setActiveCol] = useState<SortValue | null>(null);
   const [order, setOrder] = useState<OrderValue>('desc');
+  const [serial, setSerial] = useState('');
 
   const setFilter = (
-    key: 'p' | 'status' | 'type' | 'sort' | 'order',
+    key: 'p' | 'status' | 'type' | 'sort' | 'order' | 'serial',
     value: string | number,
   ) => {
     setSearchParams((prev) => {
@@ -312,6 +314,9 @@ export default function Devices() {
       } else if (key === 'sort') {
         prev.set('order', 'desc');
         prev.set('sort', value as string);
+      } else if (key === 'serial') {
+        ['status', 'type', 'order', 'sort'].map((e) => prev.delete(e));
+        serial ? prev.set('serial', value as string) : prev.delete('serial');
       } else {
         prev.set(key, typeof value === 'number' ? `${value}` : value);
       }
@@ -319,6 +324,8 @@ export default function Devices() {
       return prev;
     });
   };
+
+  const setSerialParam = () => setFilter('serial', serial);
 
   const toggleCol = (col: SortValue) => {
     if (col === activeCol) {
@@ -341,6 +348,8 @@ export default function Devices() {
     const searchOrder = searchParams.get('order');
     if (isOrderValue(searchOrder)) setOrder(searchOrder || 'desc');
 
+    setSerial(searchParams.get('serial') || '');
+
     return getPage(searchParams);
   }, [searchParams]);
   const isLoading = useMemo(() => navigation.state === 'loading', [navigation]);
@@ -354,7 +363,32 @@ export default function Devices() {
     >
       <Typography level="h2">Devices</Typography>
       <Typography>Includes all enterprise enrolled Chromebooks</Typography>
-      <Box sx={{ display: 'flex', justifyContent: 'flex-end', gap: 2 }}>
+      <Box
+        sx={{
+          display: 'flex',
+          justifyContent: 'flex-end',
+          columnGap: 2,
+          rowGap: 0.5,
+          flexWrap: 'wrap',
+        }}
+      >
+        <FormControl>
+          <FormLabel>Search by serial number</FormLabel>
+          <Input
+            size="sm"
+            value={serial}
+            autoComplete="off"
+            onChange={(e) => setSerial(e.target.value)}
+            onKeyUp={(e) => e.key === 'Enter' && setSerialParam()}
+            disabled={isLoading}
+            startDecorator={<Search />}
+            endDecorator={
+              <Button size="sm" onClick={setSerialParam} disabled={isLoading}>
+                Search
+              </Button>
+            }
+          />
+        </FormControl>
         <FormControl>
           <FormLabel>Status</FormLabel>
           <Select
@@ -550,7 +584,7 @@ export function loadDevicesFirstPage({ request }: LoaderParams) {
     const params = new URL(request.url).searchParams;
     const page = getPage(params);
     const otherProps: string[] = [];
-    for (const key of ['status', 'type', 'sort', 'order']) {
+    for (const key of ['status', 'type', 'sort', 'order', 'serial']) {
       const rawValue = params.get(key);
       if (rawValue !== null)
         otherProps.push(`${key}=${encodeURIComponent(rawValue)}`);
