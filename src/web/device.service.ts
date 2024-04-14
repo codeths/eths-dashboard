@@ -62,6 +62,7 @@ export class DeviceService {
       type?: IDeviceStatus['loanerStatus'];
       sortKey?: SortValue;
       sortOrder?: OrderValue;
+      serial?: string;
     },
   ) {
     let parsedFilters: FilterQuery<any> = {};
@@ -85,11 +86,19 @@ export class DeviceService {
         [sortKeyMap[filters.sortKey]]: filters.sortOrder || 'descending',
       };
 
-    let query = this.deviceModel
-      .aggregate<{
-        count: [{ count: number }];
-        results: DeviceQueryResponse[];
-      }>()
+    let query = this.deviceModel.aggregate<{
+      count: [{ count: number }];
+      results: DeviceQueryResponse[];
+    }>();
+
+    if (filters.serial)
+      query = query.match({
+        $expr: {
+          $eq: [filters.serial.toUpperCase(), { $toUpper: '$serialNumber' }],
+        },
+      });
+
+    query = query
       .lookup({
         from: 'events',
         localField: '_id',
@@ -144,7 +153,7 @@ export class DeviceService {
           ],
         },
       })
-      .match(parsedFilters);
+      .match(filters.serial ? {} : parsedFilters);
 
     if (sortOptions) query = query.sort(sortOptions);
 

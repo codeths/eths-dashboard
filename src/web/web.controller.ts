@@ -75,6 +75,12 @@ export class WebController {
     enum: sortOrders,
     description: 'Only applies when `sort` is set',
   })
+  @ApiQuery({
+    name: 'serial',
+    required: false,
+    type: String,
+    description: 'Overrides all filter queries when set',
+  })
   @Roles(['View'])
   @Get('devices/search')
   async searchDevices(
@@ -91,6 +97,7 @@ export class WebController {
     type?: IDeviceStatus['loanerStatus'],
     @Query('sort', new ParseEnumPipe(sortValues, { optional: true }))
     sortKey?: SortValue,
+    @Query('serial') serial?: string,
   ) {
     if (page < 0) throw new BadRequestException('Page cannot be negative');
 
@@ -98,7 +105,7 @@ export class WebController {
     const { results: devices, count } = await this.deviceService.getAllDevices(
       itemsPerPage,
       page * itemsPerPage,
-      { status, type, sortKey, sortOrder },
+      { status, type, sortKey, sortOrder, serial: serial?.trim() },
     );
     const response = devices.map(
       ({ _id, serialNumber, lastSeen, lastUser, lastUpdate, isOnline }) => {
