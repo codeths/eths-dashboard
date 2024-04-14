@@ -5,7 +5,13 @@ import Card from '@mui/joy/Card';
 import CardContent from '@mui/joy/CardContent';
 import Skeleton from '@mui/joy/Skeleton';
 import { RadioTower } from 'lucide-react';
-import { Await, defer, useLoaderData, useRevalidator } from 'react-router-dom';
+import {
+  Await,
+  Link,
+  defer,
+  useLoaderData,
+  useRevalidator,
+} from 'react-router-dom';
 import { ApiCall } from '../../utils';
 import { LoaderParams } from '../../types/loaders';
 
@@ -30,41 +36,46 @@ export default function Dashboard() {
     <Box>
       <Typography level="h2">Dashboard</Typography>
       <Box sx={{ mt: 4 }}>
-        <Card size="lg">
-          <CardContent>
-            <Typography level="body-md">Online</Typography>
-            <React.Suspense
-              fallback={
-                <Typography level="h2">
-                  <Skeleton>100</Skeleton>
-                </Typography>
-              }
-            >
-              <Await
-                resolve={data.onlineCount}
-                errorElement={
-                  <Typography level="h2" color="danger">
-                    ERROR
+        <Link
+          to="/devices?order=desc&sort=lastSeen"
+          style={{ textDecoration: 'none' }}
+        >
+          <Card size="lg">
+            <CardContent>
+              <Typography level="body-md">Online</Typography>
+              <React.Suspense
+                fallback={
+                  <Typography level="h2">
+                    <Skeleton>100</Skeleton>
                   </Typography>
                 }
               >
-                {(onlineCount: number) => (
-                  <Typography
-                    level="h2"
-                    startDecorator={
-                      <Typography level="inherit" color="neutral">
-                        <RadioTower />
-                      </Typography>
-                    }
-                    color={onlineCount > 0 ? 'success' : undefined}
-                  >
-                    {onlineCount.toLocaleString()}
-                  </Typography>
-                )}
-              </Await>
-            </React.Suspense>
-          </CardContent>
-        </Card>
+                <Await
+                  resolve={data.onlineCount}
+                  errorElement={
+                    <Typography level="h2" color="danger">
+                      ERROR
+                    </Typography>
+                  }
+                >
+                  {(onlineCount: number) => (
+                    <Typography
+                      level="h2"
+                      startDecorator={
+                        <Typography level="inherit" color="neutral">
+                          <RadioTower />
+                        </Typography>
+                      }
+                      color={onlineCount > 0 ? 'success' : undefined}
+                    >
+                      {onlineCount.toLocaleString()}
+                    </Typography>
+                  )}
+                </Await>
+              </React.Suspense>
+            </CardContent>
+          </Card>
+        </Link>
       </Box>
     </Box>
   );
