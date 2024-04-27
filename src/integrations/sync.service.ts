@@ -31,9 +31,13 @@ export class SyncService implements OnApplicationBootstrap {
 
   getCachedStatusForDevice(deviceID: string) {
     return this.oneToOneStatusModel
-      .findOne({ 'metadata.device': deviceID })
-      .sort({ timestamp: -1 })
-      .exec();
+      .find(
+        { 'metadata.device': deviceID },
+        {},
+        { sort: { timestamp: -1 }, limit: 1 },
+      )
+      .exec()
+      .then((e) => e[0]);
   }
 
   async updateStatus(deviceID: string, deviceSerial: string) {
