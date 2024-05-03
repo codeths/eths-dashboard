@@ -18,7 +18,12 @@ async function bootstrap() {
     uri: config.getOrThrow('MONGO_URL'),
     collection: 'sessions',
   });
-  app.set('trust proxy', 1);
+  const proxySetting = config.get('TRUST_PROXIES');
+  if (proxySetting) {
+    const proxySettingInt = parseInt(proxySetting);
+    app.set('trust proxy', proxySettingInt || proxySetting);
+    logger.log(`Proxy config set: ${proxySettingInt || proxySetting}`);
+  }
   app.use(
     session({
       secret: config.getOrThrow('SESSION_SECRET'),
