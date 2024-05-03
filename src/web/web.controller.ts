@@ -5,7 +5,6 @@ import {
   DefaultValuePipe,
   Delete,
   Get,
-  Ip,
   NotFoundException,
   Param,
   ParseEnumPipe,
@@ -36,7 +35,6 @@ import {
   sortOrders,
   sortValues,
 } from 'common/web/deviceSort';
-import { Request } from 'express';
 
 @Controller({
   path: 'web',
@@ -49,11 +47,6 @@ export class WebController {
     private readonly deviceService: DeviceService,
     private readonly accessService: AccessService,
   ) {}
-
-  @Get('test')
-  getIP(@Ip() ipAddress: string, @Req() request: Request) {
-    return { ipAddress, ips: request.ips };
-  }
 
   @Get('me')
   me(@Req() req: AuthenticatedRequest) {
